@@ -16,7 +16,6 @@ Traditional emotion detection uses cameras/microphones. **This app captures subt
 
 **Hypothesis**: Emotions create unique "typing fingerprints" detectable by ML models.
 
-**Target datasets**: Compatible with EmoSet 118K, FindingEmo-Light, custom keystroke datasets.
 
 ## 🏗️ Architecture
 
