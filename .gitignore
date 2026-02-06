@@ -1,0 +1,8 @@
+# Ignore test files
+test_database.py
+test_database_stud*.py
+test_keyboard.py
+test_keyboard_inte*.py
+test_emotion_study.db 
+data/__pycache__
+keyboard/__pycache__
