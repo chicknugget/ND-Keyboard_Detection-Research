@@ -1,6 +1,8 @@
 from data.models import Session, KeystrokeEvent, EmotionLabel, GameResult
 from data.constants import TASK_TYPES, FIXED_SENTENCES, EMOJI_OPTIONS
+from data.database import DatabaseManager
 
+"""
 # Test 1: printing task types
 print("Task Types:")
 print(TASK_TYPES)
@@ -85,3 +87,21 @@ print("\nEmotionLabel as dictionary:")
 print(emotion_label.to_dict())
 print("\nGameResult as dictionary:")
 print(game_result.to_dict())
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class EmotionStudyApp(App):
+    def on_start(self):
+        self.db = DatabaseManager()

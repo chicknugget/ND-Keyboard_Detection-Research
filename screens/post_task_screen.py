@@ -8,7 +8,8 @@ Post-Task Screen
  Debriefing navigation after games 4/5
 """
 
-from screens.keyboards.sample_keyboard import SampleKeyboard
+from keyboard.custom_keyboard import CustomKeyboard
+from data.models import KeystrokeEvent
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
@@ -142,8 +143,9 @@ class PostTaskScreen(BaseScreen):
             height=dp(120),
             padding=dp(4)
         )
-        self.keyboard = SampleKeyboard(target_screen=self)  ## Placeholder keyboard
+        self.keyboard = CustomKeyboard()
         self.keyboard_placeholder.add_widget(self.keyboard)
+
         main_layout.add_widget(self.keyboard_placeholder)
 
         
@@ -168,6 +170,11 @@ class PostTaskScreen(BaseScreen):
         """Reset for fresh task"""
         super().on_enter()
         self.reset_screen()
+
+        app = App.get_running_app()
+        self.keyboard.set_session(app.user_data['session_id'])
+        self.keyboard.set_task(self.task_type)
+        self.keyboard.set_keystroke_callback(self.on_keystroke)
     
     def reset_screen(self):
         self.typed_display.text = ''
@@ -303,3 +310,29 @@ class PostTaskScreen(BaseScreen):
             'session_end_time': app.user_data.get('session_end_time', ''),
             'tasks': app.user_data.get('tasks', [])
         }
+
+    def on_keystroke(self, keystroke: KeystrokeEvent):
+    """
+    Receives keystrokes from CustomKeyboard
+    - Updates visible text
+    - Stores keystroke in DB
+    """
+
+    app = App.get_running_app()
+
+    # Handle special keys
+    if keystroke.key_id == 'key_backspace':
+        self.backspace(None)
+        keystroke.is_backspace = True
+
+    elif keystroke.key_id == 'key_done':
+        # Optional: trigger submit
+        return
+
+    else:
+        self.add_char(keystroke.key_char)
+
+    # Store keystroke in database
+    if hasattr(app, 'db'):
+        app.db.insert_keystroke(keystroke)
+
