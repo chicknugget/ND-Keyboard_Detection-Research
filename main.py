@@ -1,107 +1,58 @@
-from data.models import Session, KeystrokeEvent, EmotionLabel, GameResult
-from data.constants import TASK_TYPES, FIXED_SENTENCES, EMOJI_OPTIONS
+import time
+
+from kivy.app import Appfrom kivy.uix.screenmanager import screenmanager
+from kivy.core.window import Window
+
 from data.database import DatabaseManager
+from data.models import Session
 
-"""
-# Test 1: printing task types
-print("Task Types:")
-print(TASK_TYPES)
+from screens.config import init_app_config, Stringsfrom screens.consent_screen import consent_screen
+from screens.demographics_screen import DemographicsScreen 
+from screens.instructions_screen import instructions_screen
+from screens.game_container_screen import GameContainerScreen 
+from screens.post_task_screen import PostTaskScreen 
+from screens.debriefing_screen import debriefing_screen 
+from screens.completion_screen import CompletionScreen 
 
-#test 2: printing constant sentences
-print("\nFixed Sentence for HAPPY task:")
-print(FIXED_SENTENCES["HAPPY"])
-
-#test 3: creating a sample session
-print("\n --- sample session ---")
-session = Session(
-    session_id="test-session-123",
-    participant_id="P001",
-    start_time=1704567890000,
-    status="in_progress"
-)
-print("Session created:", session)
-
-#test 4: creating a sample keystroke event
-print("\n --- sample keystroke event ---")
-keystroke_event = KeystrokeEvent(
-    session_id="test-session-123",
-    task_type="HAPPY",
-    key_id="A",
-    key_char="A",
-    press_time_ms=1704567890000,
-    release_time_ms=1704567890000,
-    hold_duration_ms=100,
-    inter_key_interval_ms=50,
-    flight_time_ms=200,
-    touch_x=100,
-    touch_y=100,
-    key_center_x=100,
-    key_center_y=100,
-    pressure=0.5,
-    touch_size=1.0,
-    is_backspace=False,
-    is_error=False,
-    position_in_sentence=0
-)
-print("Keystroke event created:", keystroke_event)
-
-# Test 4: Create a sample EmotionLabel
-print("\n--- Creating Sample EmotionLabel ---")
-emotion_label = EmotionLabel(
-    session_id="test-session-123",
-    task_type="HAPPY",
-    selected_emoji="😊",
-    typed_sentence="I am happy after playing this game.",
-    expected_sentence=FIXED_SENTENCES["HAPPY"],
-    is_exact_match=True,
-    typing_duration_ms=12450,
-    total_keystrokes=42,
-    backspace_count=2
-)
-
-print("EmotionLabel created:")
-print(emotion_label)
-
-# Test 5: Create a sample GameResult
-print("\n--- Creating Sample GameResult ---")
-game_result = GameResult(
-    session_id="test-session-123",
-    task_type="HAPPY",
-    final_score=1050,
-    outcome="FORCED_WIN",
-    start_time=1704567890000,
-    end_time=1704567980000,
-    duration_ms=90000,
-    attempts=1
-)
-print("GameResult created:")
-print(game_result)
-
-# Test 6: Convert to dictionary
-print("\n--- Testing to_dict() Methods ---")
-print("Session as dictionary:")
-print(session.to_dict())
-print("\nKeystroke event as dictionary:")
-print(keystroke_event.to_dict())
-print("\nEmotionLabel as dictionary:")
-print(emotion_label.to_dict())
-print("\nGameResult as dictionary:")
-print(game_result.to_dict())
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
+Window.size = (400, 700)
 
 class EmotionStudyApp(App):
+    def build(self): #required method by kivy: creates and returns the main widget
+        self.user_data = {} #intializes an empty dictionary to store session information
+
+        sm = ScreenManager() #making a screenmanager that will hold all screens and handle navigation
+        sm.add_widget(consent_screen(name = 'consent'))
+        '''
+        .add_widget = adds a child widget
+        ConsentScreen() = creates a new instance of consent screen class
+        name='consent' = a parameter we pass to create a screen: it gives the screen a unique name
+
+        Take the ScreenManager (sm), and add to it a new ConsentScreen object that has the name 'consent'
+        '''
+        sm.add_widget(DemographicsScreen(name='demographics'))
+        sm.add_widget(InstructionsScreen(name='instructions'))
+
+        for i, emotion in enumerate(Strings.GAME_SEQUENCE):
+            game_num = i + 1
+            sm.add_widget(GameContainerScreen(name=f'game_{game_num}_{emotion}', game_number=game_num, emotion=emotion))
+            sm.add_widget(PostTaskScreen(name=f'post_task__{emotion}', task_type=emotion))
+
+        sm.add_widget(DebriefingScreen(name='debriefing_frustrated'))
+
+        sm.add_widget(CompletionScreen(name='completion'))
+
+        return sm
+
     def on_start(self):
         self.db = DatabaseManager()
+        print("Database initialized!")
+
+    def on_stop(self):
+        if hasattr(self, 'db'):
+            self.db.close()
+            print("Database closed!")
+
+
+if name=='main':
+    init_app_config() #calls the function from config.py that sets up app configurations
+    EmotionStudyApp().run() #creates an instance of the app and runs it

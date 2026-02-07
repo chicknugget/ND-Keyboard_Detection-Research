@@ -1,5 +1,3 @@
-
-
 # screens/post_task_screen.py 
 """
 Post-Task Screen
@@ -177,6 +175,7 @@ class PostTaskScreen(BaseScreen):
         self.keyboard.set_keystroke_callback(self.on_keystroke)
     
     def reset_screen(self):
+        import time
         self.typed_display.text = ''
         self.typed_length = 0
         self.selected_emoji = ''
@@ -189,6 +188,7 @@ class PostTaskScreen(BaseScreen):
             btn.disabled = True
         self.submit_btn.disabled = True
         self.submit_btn.background_color = Colors.DISABLED_GRAY
+        self.typing_start_time = time.time() #marks when typing begins for the task
         print(f"PostTaskScreen({self.task_type}) reset")
     
     def on_text_change(self, instance, value):
@@ -244,8 +244,14 @@ class PostTaskScreen(BaseScreen):
 
     def on_submit(self, instance):
         from datetime import datetime
+        from data.models import EmotionLabel
+        import time
+        from data.constants import FIXED_SENTENCES
         
-        app = App.get_running_app()
+        app = App.get_running_app() #gives the screen access to the global app instance
+        session_id = app.user_data.get('session_id', )
+        task_type = app.user_data.get('task_type', )
+
         if self.typed_length < MIN_TYPING_LENGTH or not self.selected_emoji:
             print(" Invalid submission")
             return
@@ -312,27 +318,26 @@ class PostTaskScreen(BaseScreen):
         }
 
     def on_keystroke(self, keystroke: KeystrokeEvent):
-    """
-    Receives keystrokes from CustomKeyboard
-    - Updates visible text
-    - Stores keystroke in DB
-    """
+        """
+        Receives keystrokes from CustomKeyboard
+        - Updates visible text
+        - Stores keystroke in DB
+        """
 
-    app = App.get_running_app()
+        app = App.get_running_app()
 
-    # Handle special keys
-    if keystroke.key_id == 'key_backspace':
-        self.backspace(None)
-        keystroke.is_backspace = True
+        # Handle special keys
+        if keystroke.key_id == 'key_backspace':
+            self.backspace(None)
+            keystroke.is_backspace = True
 
-    elif keystroke.key_id == 'key_done':
-        # Optional: trigger submit
-        return
+        elif keystroke.key_id == 'key_done':
+            # Optional: trigger submit
+            return
 
-    else:
-        self.add_char(keystroke.key_char)
+        else:
+            self.add_char(keystroke.key_char)
 
-    # Store keystroke in database
-    if hasattr(app, 'db'):
-        app.db.insert_keystroke(keystroke)
-
+        # Store keystroke in database
+        if hasattr(app, 'db'):
+            app.db.insert_keystroke(keystroke)
