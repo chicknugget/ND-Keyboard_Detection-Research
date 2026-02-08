@@ -16,7 +16,7 @@ import random
 
 
 random_win = random.randint(1, 4)
- 
+
 class ImageButton(ButtonBehavior, Image):
     pass
 
@@ -33,12 +33,22 @@ class ShufflingGame(FloatLayout):
         self.total_rounds = total_rounds
         self.points_show = points_show
         self.total_shuffles = 3 
-        self.points = 0
         
         with self.canvas.before:
             Color(97/255, 112/255, 44/255, 1)   
             self.rect = Rectangle(pos=self.pos, size=self.size)
         self.bind(pos=self.update_rect, size=self.update_rect)
+
+        self.app = App.get_running_app()
+
+        self.points_label = Label(text=f"Points: {self.app.total_points}", 
+                   font_size='10sp',
+                   font_name = 'PrStart.ttf',
+                   color=(64/255, 48/255, 6/255, 1), 
+                   size_hint=(0.8, 0.1), 
+                   pos_hint={'center_x': 0.5, 'top': 0.75},
+                   opacity=1 if self.points_show else 0)
+        self.add_widget(self.points_label)
 
         self.level_label = Label(text=f"Level {self.level}:", 
                    font_size='30sp',
@@ -56,18 +66,9 @@ class ShufflingGame(FloatLayout):
                    pos_hint={'center_x': 0.5, 'top': 0.8})
         self.add_widget(self.round_label)
 
-        self.points_label = Label(text=f"Points: {self.points}", 
-                   font_size='10sp',
-                   font_name = 'PrStart.ttf',
-                   color=(64/255, 48/255, 6/255, 1), 
-                   size_hint=(0.8, 0.1), 
-                   pos_hint={'center_x': 0.5, 'top': 0.75},
-                   opacity=1 if self.points_show else 0)
-        self.add_widget(self.points_label)
-
         self.find_ball = Label(text="Find the ball!", 
                    font_size='15sp',
-                   font_name = 'PrStart.ttf',
+                   font_name = 'PrStart.ttf', 
                    color=(48/255, 42/255, 3/255, 1),
                    size_hint=(0.6, 0.1),
                    pos_hint={'center_x': 0.5, 'top': 0.7},
@@ -139,8 +140,17 @@ class ShufflingGame(FloatLayout):
                                      font_name = 'PrStart.ttf',
                                      background_color=(0.38, 0.26, 0.04, 1),
                                      color=(232/255, 208/255, 149/255, 1))
+            self.next_level_button.bind(on_release=self.switch_to_feedback)
             self.add_widget(self.next_level_button)
 
+    def switch_to_feedback(self, instance):
+        p = self.parent
+        while p:
+            if hasattr(p, 'go_to_post_task'):
+                p.go_to_post_task() 
+                return
+            p = p.parent
+    
     def update_rect(self, *args):
         self.rect.pos = self.pos
         self.rect.size = self.size
@@ -188,8 +198,8 @@ class ShufflingGame(FloatLayout):
             self.ball.pos_hint = {'center_x': instance.pos_hint['center_x'], 'center_y': 0.4}
             self.ball.opacity = 1
             Animation(pos_hint={'center_y': 0.55}, duration=0.4).start(instance)
-            self.points += 10
-            self.points_label.text = f"Points: {self.points}"
+            self.app.total_points += 10
+            self.points_label.text = f"Points: {self.app.total_points}"
         else:
             if not self.can_click: return
             self.can_click = False
@@ -198,8 +208,8 @@ class ShufflingGame(FloatLayout):
             self.ball.pos_hint = {'center_x': wrong_glass.pos_hint['center_x'], 'center_y': 0.4}
             Animation(pos_hint={'center_y': 0.55}, duration=0.4).start(instance)
             Clock.schedule_once(lambda dt: Animation(pos_hint={'center_y': 0.4}, duration=0.4).start(instance), 1)
-            self.points -= 10
-            self.points_label.text = f"Points: {self.points}"
+            self.app.total_points -= 10
+            self.points_label.text = f"Points: {self.app.total_points}"
         self.end_turn()
 
     def rig_owin_nloss(self, instance, random_win):
@@ -209,8 +219,8 @@ class ShufflingGame(FloatLayout):
             self.ball.pos_hint = {'center_x': instance.pos_hint['center_x'], 'center_y': 0.4}
             self.ball.opacity = 1
             Animation(pos_hint={'center_y': 0.55}, duration=0.4).start(instance)
-            self.points += 10
-            self.points_label.text = f"Points: {self.points}"
+            self.app.total_points += 10
+            self.points_label.text = f"Points: {self.app.total_points}"
         else:
             if not self.can_click: return
             self.can_click = False
@@ -219,8 +229,8 @@ class ShufflingGame(FloatLayout):
             self.ball.pos_hint = {'center_x': wrong_glass.pos_hint['center_x'], 'center_y': 0.4}
             Animation(pos_hint={'center_y': 0.55}, duration=0.4).start(instance)
             Clock.schedule_once(lambda dt: Animation(pos_hint={'center_y': 0.4}, duration=0.4).start(instance), 1)
-            self.points -= 10
-            self.points_label.text = f"Points: {self.points}"
+            self.app.total_points -= 10
+            self.points_label.text = f"Points: {self.app.total_points}"
         self.end_turn()
 
     def check_guess(self, instance):
@@ -230,9 +240,9 @@ class ShufflingGame(FloatLayout):
         Animation(pos_hint={'center_y': 0.55}, duration=0.4).start(instance)
         if instance == self.correct_glass:
             self.ball.opacity = 1
-            self.points += 10
             if self.points_show:
-                self.points_label.text = f"Points: {self.points}"
+                self.app.total_points += 10
+                self.points_label.text = f"Points: {self.app.total_points}"
         else:
             Clock.schedule_once(lambda dt: Animation(pos_hint={'center_y': 0.4}, duration=0.4).start(instance), 1)
         self.end_turn()
@@ -243,8 +253,8 @@ class ShufflingGame(FloatLayout):
         self.ball.pos_hint = {'center_x': instance.pos_hint['center_x'], 'center_y': 0.4}
         self.ball.opacity = 1
         Animation(pos_hint={'center_y': 0.55}, duration=0.4).start(instance)
-        self.points += 10
-        self.points_label.text = f"Points: {self.points}"
+        self.app.total_points += 10
+        self.points_label.text = f"Points: {self.app.total_points}"
         self.end_turn()
 
     def rig_lose(self, instance):
@@ -256,13 +266,6 @@ class ShufflingGame(FloatLayout):
         
         Animation(pos_hint={'center_y': 0.55}, duration=0.4).start(instance)
         Clock.schedule_once(lambda dt: Animation(pos_hint={'center_y': 0.4}, duration=0.4).start(instance), 1)
-        self.points -= 10
-        self.points_label.text = f"Points: {self.points}"
+        self.app.total_points -= 10
+        self.points_label.text = f"Points: {self.app.total_points}"
         self.end_turn()
-
-class GlassApp(App):
-    def build(self):
-        return ShufflingGame(level=1, rigged=None, speed=0.5, no_of_glasses=3)
-
-if __name__ == '__main__':
-    GlassApp().run()
