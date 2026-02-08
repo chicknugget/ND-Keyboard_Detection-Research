@@ -1,11 +1,3 @@
-# screens/post_task_screen.py 
-"""
-Post-Task Screen
-  "Feedback" title 
- Portrait order: Sentences → Input → Emojis → Keyboard → Submit
- Debriefing navigation after games 4/5
-"""
-
 from keyboard.custom_keyboard import CustomKeyboard
 from data.models import KeystrokeEvent
 from kivy.uix.boxlayout import BoxLayout
@@ -41,11 +33,11 @@ class EmojiImageButton(ButtonBehavior, Image):
         self.keep_ratio = True
 
 class PostTaskScreen(BaseScreen):
-    task_type = StringProperty('relaxed')
+    task_type = StringProperty('relaxation')
     selected_emoji = StringProperty('')
     typed_length = NumericProperty(0)
     
-    def __init__(self, task_type='relaxed', **kwargs):
+    def __init__(self, task_type='relaxation', **kwargs):
         super(PostTaskScreen, self).__init__(**kwargs)
         self.task_type = task_type
         
@@ -172,7 +164,7 @@ class PostTaskScreen(BaseScreen):
         app = App.get_running_app()
         self.keyboard.set_session(app.user_data['session_id'])
         self.keyboard.set_task(self.task_type)
-        self.keyboard.set_keystroke_callback(self.on_keystroke)
+        self.keyboard.set_on_keystroke_callback(self.on_keystroke)
     
     def reset_screen(self):
         import time
@@ -289,16 +281,26 @@ class PostTaskScreen(BaseScreen):
         print(f"   Task Type: {task_data['task_type']}")
         print(f"   Typed: {task_data['typed_text'][:30]}...")
         
-        # Navigation (debriefing after games 4+5)
-        if current_game in [4, 5]:
+        if current_game in [5, 6]:
             self.manager.current = f'debriefing_{self.task_type}'
+
         elif current_game == 7:
-            # Set session end time on final task
             app.user_data['session_end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.manager.current = 'completion'
+        
         else:
-            app.user_data['current_game'] = current_game + 1
-            self.manager.current = f'game_{current_game + 1}_{Strings.GAME_SEQUENCE[current_game]}'
+            next_game_num = current_game + 1
+            
+            app.user_data['current_game'] = next_game_num
+            
+            next_emotion = Strings.GAME_SEQUENCE[next_game_num - 1]
+            next_screen_name = f'game_{next_game_num}_{next_emotion}'
+            
+            print(f" Navigating to: {next_screen_name}")
+            if self.manager.has_screen(next_screen_name):
+                self.manager.current = next_screen_name
+            else:
+                self.manager.current = self.manager.next()
     
     def get_backend_data(self):
         """
