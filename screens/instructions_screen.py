@@ -127,7 +127,7 @@ Ready to begin? Click START GAME!
         print(f" User: {app.user_data}")
         
         # Navigate to first game (game 1: relaxed)
-        self.manager.current = 'game_1_relaxed'
+        self.manager.current = 'game_1_relaxation'
     
     def on_reset(self, instance):
         """Reset app data and return to consent screen"""

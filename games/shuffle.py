@@ -22,10 +22,11 @@ class ImageButton(ButtonBehavior, Image):
 
 class ShufflingGame(FloatLayout):
     speed = NumericProperty(0.5)
-    current_round = 1
+    
 
-    def __init__(self, level = 0, rigged=None, speed=0.5, no_of_glasses=3, points_show=True, total_rounds=10, **kwargs):
+    def __init__(self, level = 0, rigged=None, speed=0.5, no_of_glasses=3, points_show=True, total_rounds=10,on_game_complete=None, **kwargs):
         super(ShufflingGame, self).__init__(**kwargs)
+        self.on_game_complete = on_game_complete
         self.level = level
         self.rigged = rigged
         self.speed = speed
@@ -34,6 +35,7 @@ class ShufflingGame(FloatLayout):
         self.points_show = points_show
         self.total_shuffles = 3 
         self.points = 0
+        self.current_round = 1
         
         with self.canvas.before:
             Color(97/255, 112/255, 44/255, 1)   
@@ -42,7 +44,7 @@ class ShufflingGame(FloatLayout):
 
         self.level_label = Label(text=f"Level {self.level}:", 
                    font_size='30sp',
-                   font_name = 'PrStart.ttf',
+                   font_name = 'assets/fonts/PrStart.ttf',
                    color=(46/255, 34/255, 4/255, 1), 
                    size_hint=(0.8, 0.1), 
                    pos_hint={'center_x': 0.5, 'top': 0.9})
@@ -50,7 +52,7 @@ class ShufflingGame(FloatLayout):
 
         self.round_label = Label(text=f"Round {self.current_round}:", 
                    font_size='20sp',
-                   font_name = 'PrStart.ttf',
+                   font_name = 'assets/fonts/PrStart.ttf',
                    color=(64/255, 48/255, 6/255, 1), 
                    size_hint=(0.8, 0.1), 
                    pos_hint={'center_x': 0.5, 'top': 0.8})
@@ -58,7 +60,7 @@ class ShufflingGame(FloatLayout):
 
         self.points_label = Label(text=f"Points: {self.points}", 
                    font_size='10sp',
-                   font_name = 'PrStart.ttf',
+                   font_name = 'assets/fonts/PrStart.ttf',
                    color=(64/255, 48/255, 6/255, 1), 
                    size_hint=(0.8, 0.1), 
                    pos_hint={'center_x': 0.5, 'top': 0.75},
@@ -67,7 +69,7 @@ class ShufflingGame(FloatLayout):
 
         self.find_ball = Label(text="Find the ball!", 
                    font_size='15sp',
-                   font_name = 'PrStart.ttf',
+                   font_name = 'assets/fonts/PrStart.ttf',
                    color=(48/255, 42/255, 3/255, 1),
                    size_hint=(0.6, 0.1),
                    pos_hint={'center_x': 0.5, 'top': 0.7},
@@ -131,15 +133,37 @@ class ShufflingGame(FloatLayout):
             self.find_ball.opacity = 0
             self.setup_game()
         else:
-            self.round_label.text = "Game Over"
-            self.next_level_button=Button(text="Next Level?",
-                                     size_hint=(0.7, 0.1),
-                                     pos_hint={'center_x': 0.5, 'center_y': 0.2},
-                                     font_size='20sp',
-                                     font_name = 'PrStart.ttf',
-                                     background_color=(0.38, 0.26, 0.04, 1),
-                                     color=(232/255, 208/255, 149/255, 1))
+            if hasattr(self,'next_level_button'):
+                return
+            
+            self.can_click =False
+            self.round_label.text ="Game Over"
+
+            #decide button text based on final level
+            is_final_game = (self.level ==7)
+
+            self.next_level_button = Button(
+                text="Finish Game" if is_final_game else "Next Level?",
+                size_hint=(0.7, 0.1),
+                pos_hint={'center_x': 0.5, 'center_y': 0.2},
+                font_size='20sp',
+                font_name='assets/fonts/PrStart.ttf',
+                background_color=(0.38, 0.26, 0.04, 1),
+                color=(232/255, 208/255, 149/255, 1)
+            )
+
+            self.next_level_button.bind(on_press=self.finish_game)
             self.add_widget(self.next_level_button)
+
+
+    def finish_game(self,instance):
+        app = App.get_running_app()
+        #counting level completed to print
+        completed = app.user_data.setdefault('completed_games',set())
+        completed.add(self.level)
+        
+        if self.on_game_complete:
+            self.on_game_complete()
 
     def update_rect(self, *args):
         self.rect.pos = self.pos
@@ -260,9 +284,10 @@ class ShufflingGame(FloatLayout):
         self.points_label.text = f"Points: {self.points}"
         self.end_turn()
 
-class GlassApp(App):
-    def build(self):
-        return ShufflingGame(level=1, rigged=None, speed=0.5, no_of_glasses=3)
+# class GlassApp(App):
+#     def build(self):
+#         return ShufflingGame(level=1, rigged=None, speed=0.5, no_of_glasses=3,on_game_complete = lambda : print("game finished"))
 
-if __name__ == '__main__':
-    GlassApp().run()
+
+# if __name__ == '__main__':
+#     GlassApp().run()
