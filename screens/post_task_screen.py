@@ -272,6 +272,10 @@ class PostTaskScreen(BaseScreen):
         app.user_data.setdefault('tasks', []).append(task_data)
         
         current_game = app.user_data.get('current_game', 1)
+
+        if hasattr(app, 'db'):
+            app.db.flush_keystroke_buffer()
+            
         print(f" Task {current_game} saved: {self.selected_emoji}")
         print(f"   Participant: {task_data['participant_id']}")
         print(f"   Session: {task_data['session_id']}")

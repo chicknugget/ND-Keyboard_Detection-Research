@@ -7,3 +7,4 @@ test_emotion_study.db
 data/__pycache__
 keyboard/__pycache__
 screens/__pycache__
+emotion_study.db
