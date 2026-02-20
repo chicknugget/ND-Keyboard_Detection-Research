@@ -19,13 +19,13 @@ from screens.config import Colors, Layout, Typography, Strings
 
 
 GAME_SETTINGS = {
-    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 2},
-    'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 2},
-    'boredom':    {'rigged': None, 'speed': 0.5, 'no_of_glasses': 1, 'points_show': True, 'total_rounds': 2},
-    'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 2},
-    'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 2},
-    'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 2},
-    'relaxation_final': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 2}
+    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 2, 'bg_music':'relaxation'},
+    'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 2}, 'bg_music':'happy',
+    'boredom':    {'rigged': None, 'speed': 0.5, 'no_of_glasses': 1, 'points_show': True, 'total_rounds': 2}, 'bg_music':'boredom',
+    'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 2, 'bg_music':'sad'},
+    'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 2, 'bg_music':'frustrated'},
+    'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 2, 'bg_music':'stress'},
+    'relaxation_final': {'rigged': "rig_win", 'speed': 0.65, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 2, 'bg_music':'relaxation'}
 }
 
 
@@ -59,7 +59,7 @@ class GameContainerScreen(BaseScreen):
         # Progress text (left side) - "Level X/7"
         progress_text = self.create_subtitle(
             f'Level {self.game_number}/{self.total_games}',
-            color=Colors.PRIMARY_BLUE
+            color=Colors.DANGER_RED_DARK
         )
         progress_text.font_size = Typography.BODY_STANDARD
         progress_text.bold = True
@@ -141,6 +141,7 @@ class GameContainerScreen(BaseScreen):
             no_of_glasses=config['no_of_glasses'],
             points_show=config['points_show'],
             total_rounds=config['total_rounds'],
+            bg_music=config.get('bg_music', 'relaxation'),
             on_game_complete=self.go_to_post_task
         )
         
