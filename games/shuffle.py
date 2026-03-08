@@ -14,7 +14,11 @@ from kivy.graphics import Color, Rectangle
 from kivy.properties import NumericProperty
 from kivy.core.audio import SoundLoader
 import random
+import os
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+BASE_PATH = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 
 random_win = random.randint(1, 4)
  
@@ -27,6 +31,7 @@ class ShufflingGame(FloatLayout):
 
     def __init__(self, level = 0, rigged=None, speed=0.5, no_of_glasses=3, points_show=True, total_rounds=10, on_game_complete=None, bg_music=None, **kwargs):
         super(ShufflingGame, self).__init__(**kwargs)
+
         self.on_game_complete = on_game_complete
         self.level = level
         self.rigged = rigged
@@ -36,10 +41,10 @@ class ShufflingGame(FloatLayout):
         self.points_show = points_show
         self.total_shuffles = 3 
         self.current_round = 1
-        self.success_ding = SoundLoader.load('assets/music/dings/success_ding.wav')
+        self.success_ding = SoundLoader.load(os.path.join(BASE_PATH, 'assets', 'music', 'dings', 'success_ding.wav'))
         self.success_ding.volume = 0.5
-        self.lose_ding = SoundLoader.load('assets/music/dings/lose_ding.wav')
-        self.bg_music = SoundLoader.load(f'assets/music/bg music/{bg_music}.mp3') if bg_music else None
+        self.lose_ding = SoundLoader.load(os.path.join(BASE_PATH, 'assets', 'music', 'dings', 'lose_ding.wav'))
+        self.bg_music = SoundLoader.load(os.path.join(BASE_PATH, 'assets', 'music', 'bg music', f'{bg_music}.mp3')) if bg_music else None
         if self.bg_music:
             self.bg_music.loop = True      
             self.bg_music.volume = 0.1
@@ -54,7 +59,7 @@ class ShufflingGame(FloatLayout):
 
         self.level_label = Label(text=f"Level {self.level}:", 
                    font_size='30sp',
-                   font_name = 'assets/fonts/PrStart.ttf',
+                   font_name = os.path.join(BASE_PATH, 'assets', 'fonts', 'PrStart.ttf'),
                    color=(46/255, 34/255, 4/255, 1), 
                    size_hint=(0.8, 0.1), 
                    pos_hint={'center_x': 0.5, 'top': 0.9})
@@ -62,7 +67,7 @@ class ShufflingGame(FloatLayout):
 
         self.round_label = Label(text=f"Round {self.current_round}:", 
                    font_size='20sp',
-                   font_name = 'assets/fonts/PrStart.ttf',
+                   font_name = os.path.join(BASE_PATH, 'assets', 'fonts', 'PrStart.ttf'),
                    color=(64/255, 48/255, 6/255, 1), 
                    size_hint=(0.8, 0.1), 
                    pos_hint={'center_x': 0.5, 'top': 0.8})
@@ -70,7 +75,7 @@ class ShufflingGame(FloatLayout):
 
         self.points_label = Label(text=f"Points: {self.app.total_points}", 
                    font_size='10sp',
-                   font_name = 'assets/fonts/PrStart.ttf',
+                   font_name = os.path.join(BASE_PATH, 'assets', 'fonts', 'PrStart.ttf'),
                    color=(64/255, 48/255, 6/255, 1), 
                    size_hint=(0.8, 0.1), 
                    pos_hint={'center_x': 0.5, 'top': 0.75},
@@ -79,7 +84,7 @@ class ShufflingGame(FloatLayout):
 
         self.find_ball = Label(text="Find the ball!", 
                    font_size='15sp',
-                   font_name = 'assets/fonts/PrStart.ttf',
+                   font_name = os.path.join(BASE_PATH, 'assets', 'fonts', 'PrStart.ttf'),
                    color=(48/255, 42/255, 3/255, 1),
                    size_hint=(0.6, 0.1),
                    pos_hint={'center_x': 0.5, 'top': 0.7},
@@ -88,7 +93,7 @@ class ShufflingGame(FloatLayout):
 
         self.point_change = Label(text = "",
                    font_size='25sp',
-                   font_name = 'assets/fonts/PrStart.ttf',
+                   font_name = os.path.join(BASE_PATH, 'assets', 'fonts', 'PrStart.ttf'),
                    color=(189/255, 141/255, 30/255, 1),
                    size_hint=(0.6, 0.1),
                    opacity=0)
@@ -111,7 +116,7 @@ class ShufflingGame(FloatLayout):
 
         if hasattr(self, 'ball'): self.remove_widget(self.ball)
         self.ball = Image(
-            source='ball.png', 
+            source = os.path.join(BASE_PATH, 'assets', 'cup_ball', 'ball.png'), 
             size_hint=(width_hint*0.6, 0.1), 
             opacity=0,
             pos_hint={'center_x': self.lanes[self.correct_index], 'center_y': 0.4}
@@ -121,7 +126,7 @@ class ShufflingGame(FloatLayout):
         for i in range(self.no_of_glasses):
             width_hint = 0.75 / self.no_of_glasses
             btn = ImageButton(
-                source='cup.png', 
+                source = os.path.join(BASE_PATH, 'assets', 'cup_ball', 'cup.png'), 
                 size_hint=(width_hint, 0.2),
                 pos_hint={'center_x': self.lanes[i], 'center_y': 0.4}
             )
@@ -166,7 +171,7 @@ class ShufflingGame(FloatLayout):
                 size_hint=(0.7, 0.1),
                 pos_hint={'center_x': 0.5, 'center_y': 0.2},
                 font_size='20sp',
-                font_name='assets/fonts/PrStart.ttf',
+                font_name=os.path.join(BASE_PATH, 'assets', 'fonts', 'PrStart.ttf'),
                 background_color=(0.38, 0.26, 0.04, 1),
                 color=(232/255, 208/255, 149/255, 1)
             )
@@ -327,10 +332,10 @@ class ShufflingGame(FloatLayout):
         self.points_label.text = f"Points: {self.app.total_points}"
 
 
-# class GlassApp(App):
-#     def build(self):
-#         return ShufflingGame(level=1, rigged="rig_nwin_oloss", speed=0.5, total_rounds=5, points_show=True, no_of_glasses=3, bg_music="happy", on_game_complete = lambda : print("game finished"))
+class GlassApp(App):
+    def build(self):
+        return ShufflingGame(level=1, rigged="rig_nwin_oloss", speed=0.5, total_rounds=5, points_show=True, no_of_glasses=3, bg_music="happy", on_game_complete = lambda : print("game finished"))
 
 
-# if __name__ == '__main__':
-#     GlassApp().run()
+if __name__ == '__main__':
+    GlassApp().run()
