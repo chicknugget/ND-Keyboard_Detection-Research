@@ -21,7 +21,7 @@ from kivy.uix.behaviors import ButtonBehavior
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, BASE_PATH
 
-MIN_TYPING_LENGTH = 15
+MIN_TYPING_LENGTH = 16
  
 SENTENCE_OPTIONS = [
     'this game is relaxing.',

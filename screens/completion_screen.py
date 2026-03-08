@@ -178,9 +178,9 @@ class CompletionScreen(BaseScreen):
                 minutes = int(duration.total_seconds() / 60)
                 session_time = f"{minutes} minutes"
             except:
-                session_time = "~25 minutes"
+                session_time = "5 minutes"
         else:
-            session_time = "~25 minutes"
+            session_time = "5 minutes"
         
         # UI text
         if games_completed == 7:
