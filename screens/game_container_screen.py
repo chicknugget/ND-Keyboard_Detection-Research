@@ -56,17 +56,29 @@ class GameContainerScreen(BaseScreen):
             padding=[Layout.PADDING_SMALL, Layout.PADDING_SMALL, Layout.PADDING_SMALL, 0]
         )
         
-        # Progress text (left side) - "Level X/7"
-        progress_text = self.create_subtitle(
-            f'Level {self.game_number}/{self.total_games}',
-            color=Colors.DANGER_RED_DARK
-        )
-        progress_text.font_size = Typography.BODY_STANDARD
-        progress_text.bold = True
-        progress_text.size_hint_x = None
-        progress_text.width = Layout.BUTTON_HEIGHT_LARGE * 1.5
+        # # Progress text (left side) - "Level X/7"
+        # progress_text = self.create_subtitle(
+        #     f'Level {self.game_number}/{self.total_games}',
+        #     color=Colors.DANGER_RED_DARK
+        # )
+        # progress_text.font_size = Typography.BODY_STANDARD
+        # progress_text.bold = True
+        # progress_text.size_hint_x = None
+        # progress_text.width = Layout.BUTTON_HEIGHT_LARGE * 1.5
 
-        self.header.add_widget(progress_text)
+        # self.header.add_widget(progress_text)
+
+        # --- Level Badge with background like QUIT button ---
+        level_badge = Button(
+            text=f'Level {self.game_number}/{self.total_games}',
+            size_hint=(None, 1),
+            width=Layout.BUTTON_HEIGHT_LARGE * 1.6,
+            background_color=Colors.DANGER_RED_DARK,
+            color=(1, 1, 1, 1),
+            font_size=Typography.BUTTON_SMALL,
+            bold=True
+        )
+        self.header.add_widget(level_badge)
         
 
         progress_container = BoxLayout(orientation='vertical', size_hint_x=1)
