@@ -1,8 +1,5 @@
 
 # screens/completion_screen.py 
-"""
-Completion Screen: Thank you + summary + export + close + replay
-"""
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.app import App
@@ -22,7 +19,6 @@ class CompletionScreen(BaseScreen):
             spacing=Layout.SPACING_LARGE
         )
         
-        #  Thank You!  Title
         title = self.create_title(
             'Thank You! ',
             size='large',
@@ -33,7 +29,7 @@ class CompletionScreen(BaseScreen):
         
         # Completion confirmation
         self.complete_msg = self.create_subtitle(
-            'You completed all 7 tasks successfully!',
+            'You completed all 7 games successfully!',
             color=Colors.TEXT_BLACK
         )
         self.complete_msg.font_size = Typography.BODY_LARGE
@@ -93,7 +89,7 @@ class CompletionScreen(BaseScreen):
         reminder_title.height = Layout.SUBTITLE_HEIGHT + Layout.SPACING_TINY
         
         reminder_text = self.create_subtitle(
-            'Some tasks were designed to be challenging.\nYour data is completely anonymous.',
+            'Some levels were designed to be challenging.\nYour data is completely anonymous.',
             color=Colors.TEXT_BLACK
         )
         reminder_text.font_size = Typography.BODY_SMALL
@@ -208,7 +204,7 @@ class CompletionScreen(BaseScreen):
     def on_export(self, instance):
         """Person C: Replace with real export function"""
         app = App.get_running_app()
-        print("📤 EXPORTING DATA:", app.user_data)
+        print(" EXPORTING DATA:", app.user_data)
         print("Person C: Implement export_data(app.user_data) here")
     
     def on_replay(self, instance):
@@ -232,10 +228,10 @@ class CompletionScreen(BaseScreen):
             'debriefing_complete': False
         }
         
-        print(f"🔁 REPLAY - New session: {session_id}")
+        print(f" REPLAY - New session: {session_id}")
         self.manager.current = 'instructions'
     
     def on_close(self, instance):
         """Close the entire app"""
-        print("👋 Session complete - Thank you!")
+        print("Session complete - Thank you!")
         App.get_running_app().stop()

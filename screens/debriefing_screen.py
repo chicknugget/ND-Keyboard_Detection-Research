@@ -42,7 +42,6 @@ class DebriefingScreen(BaseScreen):
             spacing=Layout.SPACING_STANDARD
         )
 
-        # Title with warning color
         title = self.create_title(
             '*** IMPORTANT MESSAGE ***',
             size='small',
@@ -50,7 +49,6 @@ class DebriefingScreen(BaseScreen):
         )
         main_layout.add_widget(title)
         
-        # Reassuring message card
         message_text = """
 The Level you just finished was INTENTIONALLY impossible.
 
@@ -65,7 +63,6 @@ Thank you for participating. Take a deep breath.
      Our team appreciates you
         """
         
-        # Create card 
         card = self.create_card(
             size_hint=(0.95, None),
             padding=Layout.CARD_PADDING,
@@ -87,7 +84,6 @@ Thank you for participating. Take a deep breath.
         card.add_widget(message_label)
         main_layout.add_widget(card)
 
-        # Spacer
         main_layout.add_widget(BoxLayout(size_hint_y=None, height=Layout.PADDING_SMALL))
         
         # "I Understand" button (cannot skip)
@@ -108,7 +104,6 @@ Thank you for participating. Take a deep breath.
         if not hasattr(app, 'user_data'):
             app.user_data = {}
 
-        #mark debriefing as completed
         app.user_data['debriefing_complete'] = True
         #current_game just finished
         current_game = app.user_data.get('current_game', 1)

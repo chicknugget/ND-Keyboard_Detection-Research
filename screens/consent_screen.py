@@ -1,10 +1,5 @@
 
 # screens/consent_screen.py
-"""
-Consent Screen: Informed consent information
- Must agree to all checkboxes to proceed
- Cannot proceed without checking all boxes
-"""
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.checkbox import CheckBox
@@ -21,15 +16,14 @@ class ConsentScreen(BaseScreen):
 
     def __init__(self, **kwargs):
         super(ConsentScreen, self).__init__(**kwargs)
-        
-        # Main layout 
+         
         main_layout = BoxLayout(
             orientation='vertical',
             padding=Layout.PADDING_LARGE,
             spacing=Layout.SPACING_STANDARD
         )
         
-        # Title using base_screen factory method
+        # Title 
         title = self.create_title('INFORMED CONSENT')
         main_layout.add_widget(title)
         
@@ -63,21 +57,19 @@ By checking all boxes below, you confirm:
         )
         info_layout.bind(minimum_height=info_layout.setter('height'))
         
-        # Create label with explicit color - let it auto-size
         from kivy.uix.label import Label
         info_label = Label(
             text=info_text,
             font_size=Typography.BODY_SMALL,
-            color=Colors.TEXT_BLACK,  # Black text for visibility on white background
+            color=Colors.TEXT_BLACK,  
             halign='left',
             valign='top',
             size_hint_y=None,
             markup=True
         )
         
-        # Bind text_size to update text_size when width changes
+
         def set_text_size(instance, value):
-            # Set text_size with padding considered
             instance.text_size = (value - Layout.PADDING_CARD * 2, None)
         
         info_label.bind(
@@ -86,11 +78,11 @@ By checking all boxes below, you confirm:
         )
         info_layout.add_widget(info_label)
         
-        # Create scrollable card for info
+        # scrollable card for info
         scroll_card = self.create_scrollable_content(info_layout)
         main_layout.add_widget(scroll_card)
 
-        # Checkboxes (Vertical stack)
+        # Checkboxes 
         checkboxes_layout = BoxLayout(
             orientation='vertical',
             size_hint_y=None,
@@ -117,7 +109,7 @@ By checking all boxes below, you confirm:
                 size_hint=(None, None),
                 size=(Layout.CHECKBOX_SIZE + 6, Layout.CHECKBOX_SIZE + 6),
                 active=False,
-                color=Colors.PRIMARY_BLUE_DARK  # Dark blue for visibility
+                color=Colors.PRIMARY_BLUE_DARK  
             )
             
             # Label for checkbox
@@ -125,7 +117,7 @@ By checking all boxes below, you confirm:
             cb_label = Label(
                 text=text,
                 font_size=Typography.BODY_SMALL,
-                color=Colors.TEXT_BLACK,  # Black text for visibility on white background
+                color=Colors.TEXT_BLACK,  
                 halign='left',
                 valign='middle',
                 size_hint_x=1
@@ -147,7 +139,7 @@ By checking all boxes below, you confirm:
         
         main_layout.add_widget(checkboxes_layout)
         
-        # Buttons (Horizontal)
+        
         buttons_layout = BoxLayout(
             orientation='horizontal',
             size_hint_y=None,
@@ -172,7 +164,7 @@ By checking all boxes below, you confirm:
             disabled=True
         )
         self.consent_btn.size_hint_x = 0.48
-        self.consent_btn.background_color = Colors.DISABLED_GRAY  # Start gray
+        self.consent_btn.background_color = Colors.DISABLED_GRAY  
         buttons_layout.add_widget(self.consent_btn)
 
         main_layout.add_widget(buttons_layout)

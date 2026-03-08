@@ -1,12 +1,5 @@
 
 # screens/instructions_screen.py 
-"""
-Instructions Screen : 
- Shows participant data
- Generates session ID on start
- Reset button clears data and returns to consent
- Quit button
-"""
 
 from turtle import title
 from kivy.uix.boxlayout import BoxLayout
@@ -30,7 +23,7 @@ class InstructionsScreen(BaseScreen):
             spacing=Layout.SPACING_STANDARD
         )
         
-        # Header bar with reset , title , quit  
+        # Header bar  
         header = self.create_header_bar(show_quit=True, show_reset=True, on_reset=self.on_reset )
         main_layout.add_widget(header)
 
@@ -39,7 +32,7 @@ class InstructionsScreen(BaseScreen):
         main_layout.add_widget(title)
 
 
-        # Scrollable instructions CARD
+        # Scrollable instructions card
         instructions_layout = BoxLayout(
             orientation='vertical',
             size_hint_y=None,
@@ -80,7 +73,6 @@ class InstructionsScreen(BaseScreen):
         instructions_label.valign = 'top'
         instructions_label.size_hint_y = None
         
-        # Bind width to text_size for proper wrapping
         def set_text_size(instance, value):
             instance.text_size = (value, None)
         
@@ -95,10 +87,9 @@ class InstructionsScreen(BaseScreen):
         card = self.create_scrollable_content(instructions_layout, size_hint=(1, 0.45))
         main_layout.add_widget(card)
         
-        # Spacer
         main_layout.add_widget(BoxLayout(size_hint_y=None, height=Layout.PADDING_SMALL))
         
-        # Start button (centered, large)
+        # Start button 
         start_btn = self.create_button(
             text=Strings.BTN_START,
             on_press=self.on_start_study,

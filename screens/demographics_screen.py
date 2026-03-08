@@ -2,12 +2,6 @@
 # screens/demographics_screen.py 
 """
 Demographics Screen: Optional participant info
- Participant ID (auto-generated, persistent)
- TextInput for manual ID entry (optional)
- Age Range dropdown
- Gender dropdown (optional)
- CONTINUE button
- Quit button
 """
 
 from kivy.uix.boxlayout import BoxLayout
@@ -29,11 +23,9 @@ class DemographicsScreen(BaseScreen):
             spacing=Layout.SPACING_STANDARD
         )
         
-        # Header bar with quit button (top-right)
         header = self.create_header_bar(show_quit=True, show_reset=False)
         main_layout.add_widget(header)
-        
-        # Title + Subtitle
+ 
         title_layout = BoxLayout(
             orientation='vertical',
             size_hint_y=None,
@@ -74,7 +66,7 @@ class DemographicsScreen(BaseScreen):
         id_layout.add_widget(self.id_input)
         main_layout.add_widget(id_layout)
         
-        # Age Range - Spinner (Dropdown)
+        # Age Range
         age_layout = BoxLayout(
             orientation='vertical',
             size_hint_y=None,
@@ -101,7 +93,7 @@ class DemographicsScreen(BaseScreen):
         age_layout.add_widget(self.age_spinner)
         main_layout.add_widget(age_layout)
         
-        # Gender - Spinner (optional)
+        # Gender 
         gender_layout = BoxLayout(
             orientation='vertical',
             size_hint_y=None,
@@ -128,10 +120,9 @@ class DemographicsScreen(BaseScreen):
         gender_layout.add_widget(self.gender_spinner)
         main_layout.add_widget(gender_layout)
         
-        # Spacer
         main_layout.add_widget(BoxLayout(size_hint_y=0.1))
         
-        # Continue button (centered)
+        
         continue_btn = self.create_button(
             text=Strings.BTN_CONTINUE,
             on_press=self.on_continue,

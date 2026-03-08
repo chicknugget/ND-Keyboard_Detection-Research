@@ -47,7 +47,7 @@ class GameContainerScreen(BaseScreen):
             spacing=0
         )
         
-        # Header bar with quit button and progress bar
+        # Header bar 
         self.header = BoxLayout(
             orientation='horizontal',
             size_hint_y=None,
@@ -151,7 +151,6 @@ class GameContainerScreen(BaseScreen):
         self.end_time = datetime.now()
         # app = App.get_running_app()
         # app.user_data['last_game_end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
     
     def go_to_post_task(self):
         """Navigate to appropriate post-task screen"""

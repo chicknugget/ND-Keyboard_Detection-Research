@@ -14,15 +14,10 @@ from screens.config import Colors, Layout, Typography, AppConfig
 
 
 class BaseScreen(Screen):
-    """
-    Base class for all screens in the app
-    Provides common UI components and functionality
-    """
     
     def __init__(self, **kwargs):
         super(BaseScreen, self).__init__(**kwargs)
         
-        # Add white background to all screens by default
         with self.canvas.before:
             Color(1, 1, 1, 1)  # White 
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
@@ -32,25 +27,13 @@ class BaseScreen(Screen):
         # Lock orientation when screen is created
         AppConfig.lock_orientation(AppConfig.ORIENTATION)
         
-        # Debug logging
         print(f"{self.__class__.__name__} initialized")
     
 
     # common UI components
     
     def create_title(self, text, size='standard', color=None, height=None):
-        """
-        Create a standardized title label
-        
-        Args:
-            text (str): Title text
-            size (str): 'large', 'standard', or 'small'
-            color (tuple): RGBA color (default: PRIMARY_BLUE)
-            height (float): Custom height (default: from Layout)
-        
-        Returns:
-            Label: Configured title label
-        """
+    
         if color is None:
             color = Colors.PRIMARY_BLUE
         
@@ -79,17 +62,7 @@ class BaseScreen(Screen):
         return title
     
     def create_subtitle(self, text, color=None, wrap=True):
-        """
-        Create a subtitle/hint label
         
-        Args:
-            text (str): Subtitle text
-            color (tuple): RGBA color (default: TEXT_GRAY)
-            wrap (bool): Whether to wrap text
-        
-        Returns:
-            Label: Configured subtitle label
-        """
         if color is None:
             color = Colors.TEXT_GRAY
         
@@ -107,18 +80,7 @@ class BaseScreen(Screen):
         return subtitle
     
     def create_card(self, size_hint=(1, None), height=None, padding=None, bg_color=None):
-        """
-        Create a card container (white rounded rectangle background)
         
-        Args:
-            size_hint (tuple): Size hint for the card
-            height (float): Card height
-            padding (float or list): Card padding
-            bg_color (tuple): Background color (default: BACKGROUND_WHITE)
-        
-        Returns:
-            BoxLayout: Card container with rounded background
-        """
         if padding is None:
             padding = Layout.CARD_PADDING
         
@@ -135,7 +97,6 @@ class BaseScreen(Screen):
             card.size_hint_y = None
             card.height = height
         
-        # Add rounded rectangle background
         with card.canvas.before:
             Color(*bg_color)
             card.bg_rect = RoundedRectangle(radius=[Layout.CARD_RADIUS])
@@ -148,18 +109,7 @@ class BaseScreen(Screen):
         return card
     
     def create_button(self, text, on_press, button_type='primary', disabled=False):
-        """
-        Create a standardized button
         
-        Args:
-            text (str): Button text
-            on_press (callable): Button press handler
-            button_type (str): 'primary', 'success', 'danger', 'secondary'
-            disabled (bool): Whether button is disabled
-        
-        Returns:
-            Button: Configured button
-        """
         color_map = {
             'primary': Colors.PRIMARY_BLUE_DARK,
             'success': Colors.SUCCESS_GREEN,
@@ -182,17 +132,7 @@ class BaseScreen(Screen):
         return button
     
     def create_input_field(self, hint_text='', multiline=False, password=False):
-        """
-        Create a standardized input field
         
-        Args:
-            hint_text (str): Placeholder text
-            multiline (bool): Allow multiple lines
-            password (bool): Password field (masked)
-        
-        Returns:
-            TextInput: Configured input field
-        """
         input_field = TextInput(
             hint_text=hint_text,
             multiline=multiline,
@@ -208,16 +148,7 @@ class BaseScreen(Screen):
         return input_field
     
     def create_scrollable_content(self, content_widget, size_hint=(1, 1)):
-        """
-        Wrap content in a scrollable container
         
-        Args:
-            content_widget (Widget): Widget to make scrollable
-            size_hint (tuple): Size hint for scroll container
-        
-        Returns:
-            ScrollView: Scrollable container with content
-        """
         scroll_view = ScrollView(
             size_hint=size_hint,
             do_scroll_x=False,
@@ -225,8 +156,7 @@ class BaseScreen(Screen):
         )
         
         scroll_view.add_widget(content_widget)
-        
-        # Wrap in card for consistent styling
+  
         scroll_container = self.create_card(
             size_hint=size_hint,
             padding=0
@@ -236,17 +166,7 @@ class BaseScreen(Screen):
         return scroll_container
     
     def create_quit_button(self, size_hint=(None, None), size=None):
-        """
-        Create a standardized quit button
-        Appears in top-right corner or as separate button
         
-        Args:
-            size_hint (tuple): Size hint for button
-            size (tuple): Fixed size for button
-        
-        Returns:
-            Button: Quit button
-        """
         if size is None:
             size = (Layout.BUTTON_HEIGHT_STANDARD * 1.5, Layout.BUTTON_HEIGHT_TINY)
         
@@ -261,19 +181,7 @@ class BaseScreen(Screen):
         return quit_btn
     
     def create_header_bar(self, show_quit=True, show_reset=False, on_reset=None, title=None):
-        """
-        Create a header bar with 3-column layout: [RESET] [TITLE] [QUIT]
-        Each element can be independently shown/hidden
         
-        Args:
-            show_quit (bool): Show quit button in top-right
-            show_reset (bool): Show reset button in top-left
-            on_reset (callable): Reset button callback (required if show_reset=True)
-            title (str): Optional title to display in center of header
-        
-        Returns:
-            BoxLayout: Header bar with 3-column layout
-        """
         from kivy.uix.label import Label
         
         header = BoxLayout(
@@ -335,8 +243,7 @@ class BaseScreen(Screen):
         
         return header
     
-    
-    # COMMON EVENT HANDLERS
+
     
     def on_quit(self, instance):
         """

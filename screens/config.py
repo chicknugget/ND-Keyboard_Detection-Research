@@ -1,6 +1,5 @@
 # screens/config.py
 """
-Centralized configuration for all screens
 Colors, dimensions, fonts, and Android configuration
 """
 
@@ -8,6 +7,10 @@ from kivy.metrics import dp, sp
 from kivy.core.window import Window
 import platform
 
+import os
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_PATH = os.path.abspath(os.path.join(CURRENT_DIR,".."))
 
 
 class Colors:
@@ -177,27 +180,27 @@ class Strings:
     FIXED_EMOJIS = [
         {
             'id': 'relaxation',
-            'source': 'assets/emojis/relaxation.png'
+            'source': os.path.join(BASE_PATH, 'assets', 'emojis', 'relaxation.png')
         },
         {
             'id': 'happy',
-            'source': 'assets/emojis/happy.png'
+            'source': os.path.join(BASE_PATH, 'assets', 'emojis', 'happy.png')
         },
         {
             'id': 'sad',
-            'source': 'assets/emojis/sad.png'
+            'source': os.path.join(BASE_PATH, 'assets', 'emojis', 'sad.png')
         },
         {
             'id': 'frustrated',
-            'source': 'assets/emojis/frustrated.png'
+            'source': os.path.join(BASE_PATH, 'assets', 'emojis', 'frustrated.png')
         },
         {
             'id': 'stress',
-            'source': 'assets/emojis/stress.png'
+            'source': os.path.join(BASE_PATH, 'assets', 'emojis', 'stress.png')
         },
         {
             'id': 'boredom',
-            'source': 'assets/emojis/boredom.png'
+            'source': os.path.join(BASE_PATH, 'assets', 'emojis', 'boredom.png')
         }
     ]
     

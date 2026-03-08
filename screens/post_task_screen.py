@@ -1,6 +1,7 @@
 
 # screens/post_task_screen.py 
 
+import os
 
 from keyboard.custom_keyboard import CustomKeyboard
 from data.models import KeystrokeEvent
@@ -18,9 +19,9 @@ from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
 
 from screens.base_screen import BaseScreen
-from screens.config import Colors, Layout, Typography, Strings
+from screens.config import Colors, Layout, Typography, Strings, BASE_PATH
 
-MIN_TYPING_LENGTH = 5
+MIN_TYPING_LENGTH = 15
  
 SENTENCE_OPTIONS = [
     'this game is relaxing.',
@@ -120,7 +121,7 @@ class PostTaskScreen(BaseScreen):
         
         for emoji in Strings.FIXED_EMOJIS:
             btn = EmojiImageButton(
-                source=emoji['source'],
+                source= os.path.join(BASE_PATH,emoji['source']),
                 size_hint=(None, None),
                 size=(dp(45), dp(45)),
                 opacity=0.5
