@@ -18,7 +18,7 @@ from kivy.app import App
 def generate_participant_id():
     """
     Generate unique participant ID
-    Format: PARTICIPANT_YYYYMMDD_HHMMSS
+    Format: P_YYYYMMDD_HHMMSS
     
     Returns:
         str: Unique participant ID
@@ -27,7 +27,7 @@ def generate_participant_id():
     date_str = now.strftime("%Y%m%d")
     time_str = now.strftime("%H%M%S")
     
-    return f"PARTICIPANT_{date_str}_{time_str}"
+    return f"P_{date_str}_{time_str}"
 
 
 
