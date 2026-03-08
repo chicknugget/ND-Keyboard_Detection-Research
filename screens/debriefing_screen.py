@@ -75,11 +75,14 @@ Thank you for participating. Take a deep breath.
         message_label.font_size = Typography.BODY_STANDARD
         message_label.halign = 'center'
         message_label.valign = 'top'
-        message_label.text_size = (None, None)
+        message_label.text_size = (self.width*.85 , None)
         message_label.size_hint_y = None
+
         message_label.bind(
+            width=lambda i, v: setattr(i, 'text_size', (v, None)),
             texture_size=lambda i, v: setattr(i, 'height', v[1])
         )
+
 
         card.add_widget(message_label)
         main_layout.add_widget(card)
