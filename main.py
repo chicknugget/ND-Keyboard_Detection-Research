@@ -11,13 +11,10 @@ Emotion Study App - Complete Implementation
  Replay functionality
 """
 
-import time
-import os 
-from datetime import datetime
+import os
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
-from kivy.core.window import Window
 from kivy.resources import resource_add_path 
 from kivy.properties import NumericProperty
 
@@ -40,8 +37,6 @@ from screens.utils import init_app_data
 # Assuming your images are in ./assets/cup_ball
 cup_ball_image_path = os.path.join(os.path.dirname(__file__), 'assets', 'cup_ball')
 resource_add_path(cup_ball_image_path)
-
-Window.size = (400, 700)
 
 
 class EmotionStudyApp(App):
