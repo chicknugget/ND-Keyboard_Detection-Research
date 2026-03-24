@@ -47,7 +47,7 @@ class ShufflingGame(FloatLayout):
             self.bg_music.loop = True      
             self.bg_music.volume = 0.1
             self.bg_music.play()
-
+        self.counter = 1
         self.app = App.get_running_app()
 
         with self.canvas.before:
@@ -80,7 +80,7 @@ class ShufflingGame(FloatLayout):
                    opacity=1 if self.points_show else 0)
         self.add_widget(self.points_label)
 
-        self.find_ball = Label(text="Find the ball!", 
+        self.find_ball = Label(text=f"{self.counter}...", 
                    font_size='15sp',
                    font_name = os.path.join(BASE_PATH, 'assets', 'fonts', 'PrStart.ttf'),
                    color=(48/255, 42/255, 3/255, 1),
@@ -149,10 +149,12 @@ class ShufflingGame(FloatLayout):
         if self.current_round < self.total_rounds:
             self.current_round += 1
             self.round_label.text = f"Round {self.current_round}:"
+            self.counter = 1
+            self.find_ball.text = f"{self.counter}..."
+            self.find_ball.opacity = 0
             
             for glass in self.glasses:
                 self.remove_widget(glass)
-            self.find_ball.opacity = 0
             self.setup_game()
         else:
             if hasattr(self,'next_level_button'):
@@ -203,6 +205,7 @@ class ShufflingGame(FloatLayout):
         reveal.start(self.correct_glass)
 
     def start_shuffle_phase(self, *args):
+        self.find_ball.opacity = 1
         self.ball.opacity = 0 
         self.shuffle_glasses()
 
@@ -221,9 +224,10 @@ class ShufflingGame(FloatLayout):
     def on_shuffle_step_complete(self, *args):
         self.shuffles_done += 1
         if self.shuffles_done < self.total_shuffles:
+            self.find_ball.text = f"{self.counter + 1}..."
             self.shuffle_glasses()
         else:
-            self.find_ball.opacity = 1
+            self.find_ball.text = "Find the ball!"
             self.can_click = True
 
     def end_turn(self):
@@ -330,10 +334,10 @@ class ShufflingGame(FloatLayout):
         self.points_label.text = f"Points: {self.app.total_points}"
 
 
-class GlassApp(App):
-    def build(self):
-        return ShufflingGame(level=1, rigged="rig_nwin_oloss", speed=0.5, total_rounds=5, points_show=True, no_of_glasses=3, bg_music="happy", on_game_complete = lambda : print("game finished"))
+# class GlassApp(App):
+#     def build(self):
+#         return ShufflingGame(level=1, rigged="rig_nwin_oloss", speed=0.5, total_rounds=5, points_show=True, no_of_glasses=3, bg_music="happy", on_game_complete = lambda : print("game finished"))
 
 
-if __name__ == '__main__':
-    GlassApp().run()
+# if __name__ == '__main__':
+#     GlassApp().run()
