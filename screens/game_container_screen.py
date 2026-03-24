@@ -3,29 +3,27 @@
 
 
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.progressbar import ProgressBar
 from kivy.uix.button import Button
 from kivy.app import App
 from kivy.clock import Clock
 from datetime import datetime
 
 from kivy.graphics import Color, Rectangle, RoundedRectangle
-from kivy.properties import NumericProperty, StringProperty
 
 from games.shuffle import ShufflingGame
 
 from screens.base_screen import BaseScreen
-from screens.config import Colors, Layout, Typography, Strings
+from screens.config import Colors, Layout, Typography
 
 
 GAME_SETTINGS = {
-    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 2, 'bg_music':'relaxation'},
-    'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 2}, 'bg_music':'happy',
-    'boredom':    {'rigged': None, 'speed': 0.5, 'no_of_glasses': 1, 'points_show': True, 'total_rounds': 2}, 'bg_music':'boredom',
-    'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 2, 'bg_music':'sad'},
-    'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 2, 'bg_music':'frustrated'},
-    'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 2, 'bg_music':'stress'},
-    'relaxation_final': {'rigged': "rig_win", 'speed': 0.65, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 2, 'bg_music':'relaxation'}
+    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 5, 'bg_music':'relaxation'},
+    'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'happy'},
+    'boredom':    {'rigged': None, 'speed': 0.5, 'no_of_glasses': 1, 'points_show': True, 'total_rounds': 5, 'bg_music':'boredom'},
+    'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 5, 'bg_music':'sad'},
+    'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 5, 'bg_music':'frustrated'},
+    'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 5, 'bg_music':'stress'},
+    'relaxation_final': {'rigged': "rig_win", 'speed': 0.65, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'relaxation'}
 }
 
 
@@ -178,8 +176,14 @@ class GameContainerScreen(BaseScreen):
     
     def on_quit(self, instance):
         """Override quit button to navigate to completion screen instead of closing app"""
+
+        for widget in self.game_placeholder.children:
+            if hasattr(widget, 'bg_music') and widget.bg_music:
+                widget.bg_music.stop()
+
         app = App.get_running_app()
         tasks_completed = len(app.user_data.get('tasks', []))
+        
         
         # Record session end time (only if session has started)
         if 'session_start_time' in app.user_data:
