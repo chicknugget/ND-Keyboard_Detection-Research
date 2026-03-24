@@ -224,4 +224,4 @@ def init_app_config():
     """
     AppConfig.lock_orientation(AppConfig.ORIENTATION)
     # Uncomment the line below to set mobile window size for PC testing
-    AppConfig.set_window_size_mobile()
+    #AppConfig.set_window_size_mobile()
