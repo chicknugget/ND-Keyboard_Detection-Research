@@ -1,9 +1,14 @@
+import os
 import sqlite3
 from data.models import Session, KeystrokeEvent, EmotionLabel, GameResult
+from kivy.app import App
 
 class DatabaseManager:
 
-    def __init__(self, db_path='emotion_study.db'):
+    
+    def __init__(self):
+        app = App.get_running_app()
+        db_path = os.path.join(app.user_data_dir, 'emotion_study.db')
         self.db_path = db_path #stores database path
         self.connection = sqlite3.connect(db_path) #creates/opens a database connection  and establishes a connection to the database
         self.cursor = self.connection.cursor() #creates a cursor object for the database: basically a pen to write to the database
