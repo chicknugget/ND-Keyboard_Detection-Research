@@ -41,47 +41,22 @@ class InstructionsScreen(BaseScreen):
         )
         instructions_layout.bind(minimum_height=instructions_layout.setter('height'))
         
-        # Dynamic instructions text with user data
-        app = App.get_running_app()
-        user_data = getattr(app, 'user_data', {})
-        demographics = user_data.get('demographics', {})
-        
-        instructions_text = f"""
-            WHAT YOU'LL DO:
-            • There are 7 levels of this game. Each level lasts ~1 minute
-            • You will give feedback after each level 
-            • Select emojis that match your feelings
-            • Try to stay relaxed and focused
-
-            IMPORTANT:
-            • Some games are intentionally HARD
-            • Take your time typing - don't rush
-            • All data is COMPLETELY ANONYMOUS
-            • You can quit anytime
-
-            YOUR INFO:
-            ID: {user_data.get('participant_id', 'Not set')}
-            Age: {demographics.get('age_range', 'Not selected')}
-            Gender: {demographics.get('gender', 'Not selected')}
-
-            Ready to begin? Click START GAME!
-        """
-        
-        instructions_label = self.create_subtitle(instructions_text, color=Colors.TEXT_BLACK)
-        instructions_label.font_size = Typography.BODY_SMALL
-        instructions_label.halign = 'left'
-        instructions_label.valign = 'top'
-        instructions_label.size_hint_y = None
+        # Placeholder label — text populated in on_enter so it always shows current data
+        self.instructions_label = self.create_subtitle('', color=Colors.TEXT_BLACK)
+        self.instructions_label.font_size = Typography.BODY_SMALL
+        self.instructions_label.halign = 'left'
+        self.instructions_label.valign = 'top'
+        self.instructions_label.size_hint_y = None
         
         def set_text_size(instance, value):
             instance.text_size = (value, None)
         
-        instructions_label.bind(
+        self.instructions_label.bind(
             width=set_text_size,
             texture_size=lambda i, v: setattr(i, 'height', v[1])
         )
         
-        instructions_layout.add_widget(instructions_label)
+        instructions_layout.add_widget(self.instructions_label)
         
         # Create scrollable card
         card = self.create_scrollable_content(instructions_layout, size_hint=(1, 0.45))
@@ -98,6 +73,36 @@ class InstructionsScreen(BaseScreen):
         main_layout.add_widget(start_btn)
         
         self.add_widget(main_layout)
+
+    def on_enter(self):
+        """Refresh dynamic text every time the screen is shown (e.g. after a reset)."""
+        # this is to create and DISPLAY the new participant id each time reset
+        
+        super().on_enter() if hasattr(super(), 'on_enter') else None
+        app = App.get_running_app()
+        user_data = getattr(app, 'user_data', {})
+        demographics = user_data.get('demographics', {})
+
+        self.instructions_label.text = f"""
+            WHAT YOU'LL DO:
+            \u2022 There are 7 levels of this game. Each level lasts ~1 minute
+            \u2022 You will give feedback after each level 
+            \u2022 Select emojis that match your feelings
+            \u2022 Try to stay relaxed and focused
+
+            IMPORTANT:
+            \u2022 Some games are intentionally HARD
+            \u2022 Take your time typing - don't rush
+            \u2022 All data is COMPLETELY ANONYMOUS
+            \u2022 You can quit anytime
+
+            YOUR INFO:
+            ID: {user_data.get('participant_id', 'Not set')}
+            Age: {demographics.get('age_range', 'Not selected')}
+            Gender: {demographics.get('gender', 'Not selected')}
+
+            Ready to begin? Click START GAME!
+        """
     
     def on_start_study(self, instance):
         """Generate session ID and start first game"""

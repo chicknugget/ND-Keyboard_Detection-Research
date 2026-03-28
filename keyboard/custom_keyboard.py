@@ -36,7 +36,7 @@ class CustomKeyboard(BoxLayout):
         comma_key = KeyButton(key_char=",", key_id="key_comma", on_key_press=self.handle_keystroke)
         space_key = KeyButton(key_char=" ", key_id="key_space", on_key_press=self.handle_keystroke, text="SPACE")
         period_key = KeyButton(key_char=".", key_id="key_period", on_key_press=self.handle_keystroke)
-        done_key = KeyButton(key_char="✓", key_id="key_done", on_key_press=self.handle_keystroke, text="DONE")
+        done_key = KeyButton(key_char="Done", key_id="key_done", on_key_press=self.handle_keystroke, text="DONE")
 
         row4.add_widget(comma_key)
         row4.add_widget(space_key)
@@ -69,7 +69,7 @@ class CustomKeyboard(BoxLayout):
         
         # Add SHIFT button
         shift_key = KeyButton(
-            key_char="⇧",
+            key_char="Sft",
             key_id="key_shift",
             on_key_press=self.handle_keystroke
         )
@@ -86,7 +86,7 @@ class CustomKeyboard(BoxLayout):
         
         # Add BACKSPACE button
         backspace_key = KeyButton(
-            key_char="⌫",
+            key_char="back",
             key_id="key_backspace",
             on_key_press=self.handle_keystroke
         )

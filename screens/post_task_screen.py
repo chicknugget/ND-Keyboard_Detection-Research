@@ -24,12 +24,12 @@ from screens.config import Colors, Layout, Typography, Strings, BASE_PATH
 MIN_TYPING_LENGTH = 16
  
 SENTENCE_OPTIONS = [
-    'this game is relaxing.',
-    'this game makes me happy.',
-    'this game makes me sad.',
-    'this game is frustrating.',
-    'this game makes me stressed.',
-    'this game is boring.'
+    'This Game is Relaxing.',
+    'This Game makes me Happy.',
+    'This Game makes me Sad.',
+    'This Game is Frustrating.',
+    'This Game makes me Stressed.',
+    'This Game is Boring.'
 ]
 
 class EmojiImageButton(ButtonBehavior, Image):
@@ -80,10 +80,15 @@ class PostTaskScreen(BaseScreen):
         
         # Input box
         self.typed_display = self.create_input_field(
-            hint_text='Type any one sentence here...',
+            hint_text='Tap here & type any one sentence here...',
             multiline=True
         )
+        # Block the OS keyboard — input comes from CustomKeyboard
+        # is_focusable is kept True so tapping shows a cursor and triggers focus
+        self.typed_display.keyboard_mode = 'managed'
+        # self.typed_display.is_focusable = False
         self.typed_display.bind(text=self.on_text_change)
+        self.typed_display.bind(focus=self.on_text_focus)
         main_layout.add_widget(self.typed_display)
         
         # Character counter
@@ -136,9 +141,11 @@ class PostTaskScreen(BaseScreen):
         # ===== 5. KEYBOARD PLACEHOLDER (Person C) =====
         self.keyboard_placeholder = self.create_card(
             size_hint=(1, None),
-            height=dp(120),
+            # height=dp(120),
+            height=0,
             padding=dp(4)
         )
+        self.keyboard_placeholder.opacity = 0
         self.keyboard = CustomKeyboard()
         self.keyboard_placeholder.add_widget(self.keyboard)
 
@@ -178,14 +185,27 @@ class PostTaskScreen(BaseScreen):
         self.selected_emoji = ''
         self.char_counter.text = f'0 / {MIN_TYPING_LENGTH} characters (minimum)'
         self.char_counter.color = Colors.WARNING_ORANGE
-        self.emoji_title.opacity = 0.1
-        self.emoji_grid.opacity = 0.1
+        self.emoji_title.opacity = 0
+        self.emoji_grid.opacity = 0
         for btn in self.emoji_buttons:
-            btn.opacity = 0.5
+            btn.opacity = 0
             btn.disabled = True
         self.submit_btn.disabled = True
         self.submit_btn.background_color = Colors.DISABLED_GRAY
+        self.emoji_click_history = []   # track every emoji tap
+        # Hide the keyboard on reset
+        self.keyboard_placeholder.height = 0
+        self.keyboard_placeholder.opacity = 0
         print(f"PostTaskScreen({self.task_type}) reset")
+
+    def on_text_focus(self, instance, focused):
+        """Show custom keyboard when text box is tapped; hide when focus is lost."""
+        if focused:
+            self.keyboard_placeholder.height = dp(120)
+            self.keyboard_placeholder.opacity = 1
+        else:
+            self.keyboard_placeholder.height = 0
+            self.keyboard_placeholder.opacity = 0
     
     def on_text_change(self, instance, value):
         self.typed_length = len(value)
@@ -213,6 +233,7 @@ class PostTaskScreen(BaseScreen):
     
     def select_emoji(self, emoji_id):
         self.selected_emoji = emoji_id
+        self.emoji_click_history.append(emoji_id)   # record every tap
         # Reset all to muted
         for btn in self.emoji_buttons:
             btn.opacity = 0.8
@@ -262,7 +283,8 @@ class PostTaskScreen(BaseScreen):
             'task_number': app.user_data.get('current_game', 0),
             'task_type': self.task_type,
             'typed_text': self.typed_display.text.strip(),
-            'selected_emoji': self.selected_emoji,
+            'selected_emoji': self.selected_emoji,           # final choice
+            'emoji_click_history': list(self.emoji_click_history),  # all taps in order
             
             # Additional metadata
             'text_length': self.typed_length,
@@ -277,7 +299,7 @@ class PostTaskScreen(BaseScreen):
         if hasattr(app, 'db'):
             app.db.flush_keystroke_buffer()
             
-        print(f" Task {current_game} saved: {self.selected_emoji}")
+        print(f" level {current_game} saved. emoji selected : {self.selected_emoji}")
         print(f"   Participant: {task_data['participant_id']}")
         print(f"   Session: {task_data['session_id']}")
         print(f"   Task Type: {task_data['task_type']}")

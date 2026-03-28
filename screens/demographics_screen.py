@@ -10,7 +10,7 @@ from kivy.app import App
 
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings
-from screens.utils import get_or_create_participant_id
+from screens.utils import load_participant_data  # kept for potential future use
 
 
 class DemographicsScreen(BaseScreen):
@@ -53,14 +53,11 @@ class DemographicsScreen(BaseScreen):
         id_label.size_hint_y = None
         id_label.height = Layout.SUBTITLE_HEIGHT
         
-        # Get or create participant ID
-        participant_id, is_new = get_or_create_participant_id()
-        
         self.id_input = self.create_input_field(
             hint_text='Auto-generated (or enter custom ID)',
             multiline=False
         )
-        self.id_input.text = participant_id  # Pre-fill with participant ID
+        # Text will be populated in on_enter so it always reflects the current participant ID
         
         id_layout.add_widget(id_label)
         id_layout.add_widget(self.id_input)
@@ -131,13 +128,20 @@ class DemographicsScreen(BaseScreen):
         main_layout.add_widget(continue_btn)
         
         self.add_widget(main_layout)
-    
+
+    def on_enter(self):
+        """Refresh participant ID input every time screen is shown (e.g. after reset)."""
+        app = App.get_running_app()
+        current_id = app.user_data.get('participant_id', '')
+        self.id_input.text = current_id
+
     def on_continue(self, instance):
         """Save data and navigate to Instructions"""
         app = App.get_running_app()
         
-        # Get participant ID (use entered text or keep auto-generated)
-        participant_id = self.id_input.text.strip()
+        # Use whatever is typed in the box; fall back to current app.user_data ID
+        typed = self.id_input.text.strip()
+        participant_id = typed if typed else app.user_data.get('participant_id', '')
         
         # Store demographics data
         app.user_data['participant_id'] = participant_id
