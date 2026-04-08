@@ -12,83 +12,49 @@ Emotion Study App - Complete Implementation
 """
 
 import time
-import os 
-from datetime import datetime
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.core.window import Window
-from kivy.resources import resource_add_path 
-from kivy.properties import NumericProperty
 
+# --- PERSON B INTEGRATION: Imports ---
 from data.database import DatabaseManager
 from data.models import Session
 
-from screens.consent_screen import ConsentScreen
-from screens.demographics_screen import DemographicsScreen
-from screens.instructions_screen import InstructionsScreen
-from screens.post_task_screen import PostTaskScreen
-from screens.debriefing_screen import DebriefingScreen
-from screens.completion_screen import CompletionScreen
-from screens.game_container_screen import GameContainerScreen
-
-from screens.config import init_app_config, Strings
-from screens.utils import init_app_data
-
-
-# --- PERSON B INTEGRATION: Asset Path ---
-# Assuming your images are in ./assets/cup_ball
-cup_ball_image_path = os.path.join(os.path.dirname(__file__), 'assets', 'cup_ball')
-resource_add_path(cup_ball_image_path)
+from screens.config import init_app_config, Stringsfrom screens.consent_screen import consent_screen
+from screens.demographics_screen import DemographicsScreen 
+from screens.instructions_screen import instructions_screen
+from screens.game_container_screen import GameContainerScreen 
+from screens.post_task_screen import PostTaskScreen 
+from screens.debriefing_screen import debriefing_screen 
+from screens.completion_screen import CompletionScreen 
 
 Window.size = (400, 700)
 
 
 class EmotionStudyApp(App):
+    def build(self): #required method by kivy: creates and returns the main widget
+        self.user_data = {} #intializes an empty dictionary to store session information
 
-    # --- PERSON B INTEGRATION: Shared Points ---
-    total_points = NumericProperty(0)
+        sm = ScreenManager() #making a screenmanager that will hold all screens and handle navigation
+        sm.add_widget(consent_screen(name = 'consent'))
+        '''
+        .add_widget = adds a child widget
+        ConsentScreen() = creates a new instance of consent screen class
+        name='consent' = a parameter we pass to create a screen: it gives the screen a unique name
 
-    user_data = {}
-    
-    def build(self):
-        # Initialize app configuration (orientation lock, etc.)
-        init_app_config()
-        
-        # Initialize user data with participant ID
-        self.user_data = init_app_data()
-        
-        # Create screen manager
-        sm = ScreenManager()
-        
-        # MAIN FLOW
-        sm.add_widget(ConsentScreen(name='consent'))
+        Take the ScreenManager (sm), and add to it a new ConsentScreen object that has the name 'consent'
+        '''
         sm.add_widget(DemographicsScreen(name='demographics'))
         sm.add_widget(InstructionsScreen(name='instructions'))
-        
-        # GAME CYCLE
-        
-        #game container screens
-        for i, emotion in enumerate(Strings.GAME_SEQUENCE, 1):
-            game_num = i
-            
-            sm.add_widget(GameContainerScreen(
-                name=f'game_{game_num}_{emotion}', 
-                game_number=game_num, 
-                emotion=emotion,
-                total_games=len(Strings.GAME_SEQUENCE)
-            ))
-        #feedbackscreen
-            sm.add_widget(PostTaskScreen(
-                name=f'post_task_{emotion}',
-                task_type=emotion
-            ))
-        
-        # debriefing screen
-            if game_num in Strings.DEBRIEFING_AFTER_GAMES:
-                sm.add_widget(DebriefingScreen(name=f'debriefing_{emotion}'))
-        
-    # completionscreen
+
+        for i, emotion in enumerate(Strings.GAME_SEQUENCE):
+            game_num = i + 1
+            sm.add_widget(GameContainerScreen(name=f'game_{game_num}_{emotion}', game_number=game_num, emotion=emotion))
+            sm.add_widget(PostTaskScreen(name=f'post_task__{emotion}', task_type=emotion))
+
+        sm.add_widget(DebriefingScreen(name='debriefing_frustrated'))
+
         sm.add_widget(CompletionScreen(name='completion'))
         
         # ===== STARTING SCREEN =====
@@ -112,10 +78,10 @@ class EmotionStudyApp(App):
             self.db.close()
             print("Database closed!")
 
-
 if __name__ == '__main__':
-
     init_app_config()
     EmotionStudyApp().run()
 
-
+if name=='main':
+    init_app_config() #calls the function from config.py that sets up app configurations
+    EmotionStudyApp().run() #creates an instance of the app and runs it
