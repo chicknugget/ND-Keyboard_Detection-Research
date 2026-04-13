@@ -6,3 +6,4 @@ test_keyboard_inte*.py
 test_emotion_study.db 
 data/__pycache__
 keyboard/__pycache__
+.buildozer/

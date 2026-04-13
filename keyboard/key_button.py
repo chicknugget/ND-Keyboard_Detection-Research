@@ -43,7 +43,9 @@ class KeyButton(Button):
                 touch_x=touch.pos[0],
                 touch_y=touch.pos[1],
                 key_center_x=self.center_x,
-                key_center_y=self.center_y
+                key_center_y=self.center_y,
+                pressure=getattr(touch, 'pressure', None),
+                touch_size=getattr(touch, 'size', None)
             )
 
             #sending to parent via callback
