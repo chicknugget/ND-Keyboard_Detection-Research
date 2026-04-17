@@ -167,17 +167,17 @@ class Strings:
     """Common text strings used across the app"""
     
     # Game sequence (7 games)
-    GAME_SEQUENCE = ['relaxed', 'happy', 'sad', 'frustrated', 'stressed', 'bored', 'relaxed']
-    UNIQUE_EMOTIONS = ['relaxed', 'happy', 'sad', 'frustrated', 'stressed', 'bored']
+    GAME_SEQUENCE = ['relaxation', 'happy', 'boredom', 'sad', 'frustrated', 'stress','relaxation_final']
+    UNIQUE_EMOTIONS = ['relaxation', 'happy', 'boredom', 'sad', 'frustrated', 'stress']
     
     # Debriefing triggers
-    DEBRIEFING_AFTER_GAMES = [4, 5]  # After frustrated (game 4) and stressed (game 5)
+    DEBRIEFING_AFTER_GAMES = [5,6]  # After frustrated (game 5) and stress (game 6)
     
     # Fixed emojis for all feedback screens
     FIXED_EMOJIS = [
         {
-            'id': 'relaxed',
-            'source': 'assets/emojis/relaxed.png'
+            'id': 'relaxation',
+            'source': 'assets/emojis/relaxation.png'
         },
         {
             'id': 'happy',
@@ -192,12 +192,12 @@ class Strings:
             'source': 'assets/emojis/frustrated.png'
         },
         {
-            'id': 'stressed',
-            'source': 'assets/emojis/stressed.png'
+            'id': 'stress',
+            'source': 'assets/emojis/stress.png'
         },
         {
-            'id': 'bored',
-            'source': 'assets/emojis/bored.png'
+            'id': 'boredom',
+            'source': 'assets/emojis/boredom.png'
         }
     ]
     

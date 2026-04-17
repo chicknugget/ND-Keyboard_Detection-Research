@@ -1,7 +1,7 @@
 
 # screens/debriefing_screen.py 
 """
-Debriefing Screen: ONLY after frustrated (game 4) and stressed (game 5) 
+Debriefing Screen: ONLY after frustrated (game 5) and stress (game 6) 
  Cannot press BACK
  Cannot tap outside
  Must click "I Understand"
@@ -32,6 +32,7 @@ class DebriefingScreen(BaseScreen):
             return True  # block it
         return False
     
+    #UI component
     def __init__(self, **kwargs):
         super(DebriefingScreen, self).__init__(**kwargs)
         
@@ -51,12 +52,11 @@ class DebriefingScreen(BaseScreen):
         
         # Reassuring message card
         message_text = """
-The task you just completed was INTENTIONALLY impossible.
+The Level you just finished was INTENTIONALLY impossible.
 
-     No one was watching your performance
-     Nothing negative was recorded about you  
-     All "threats" and messages were FAKE
-     This was part of the research design
+     No one was watching your performance  
+     All warnings and messages were FAKE
+     This was part of the game design
 
 You did PERFECTLY! 
 
@@ -99,28 +99,39 @@ Thank you for participating. Take a deep breath.
         main_layout.add_widget(understand_btn)
         
         self.add_widget(main_layout)
-    
+
+    #screen navigation
     def on_understand(self, instance):
         """ONLY way to exit - proceed to next game or completion"""
         app = App.get_running_app()
+
         if not hasattr(app, 'user_data'):
             app.user_data = {}
 
+        #mark debriefing as completed
         app.user_data['debriefing_complete'] = True
+        #current_game just finished
         current_game = app.user_data.get('current_game', 1)
   
         print(f" Debriefing acknowledged (after game {current_game})")
         
-        # Navigation: continue to next game
-        # After game 4 debriefing → go to game 5 
-        # After game 5 debriefing → go to game 6 
-        if current_game == 4:
-            app.user_data['current_game'] = 5
-            self.manager.current = 'game_5_stressed'
-        elif current_game == 5:
-            app.user_data['current_game'] = 6
-            self.manager.current = 'game_6_bored'
+        # Move to next_game
+        next_game = current_game +1
+
+        if next_game <= len(Strings.GAME_SEQUENCE):
+            app.user_data['current_game'] = next_game
+            
+            next_emotion = Strings.GAME_SEQUENCE[next_game -1]
+            next_screen = f'game_{next_game}_{next_emotion}'
+
+            print(f"navigate to {next_screen}")
+
+            if self.manager.has_screen(next_screen):
+                self.manager.current = next_screen
+            else:
+                print("screen missing, navigate to completion")
+                self.manager.current = 'completion'
+
         else:
-            # Fallback
-            print("⚠️ Unexpected debriefing state")
+            print("all games comleted ")
             self.manager.current = 'completion'

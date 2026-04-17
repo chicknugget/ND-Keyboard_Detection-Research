@@ -1,10 +1,6 @@
+
 # screens/post_task_screen.py 
-"""
-Post-Task Screen
-  "Feedback" title 
- Portrait order: Sentences → Input → Emojis → Keyboard → Submit
- Debriefing navigation after games 4/5
-"""
+
 
 from keyboard.custom_keyboard import CustomKeyboard
 from data.models import KeystrokeEvent
@@ -25,6 +21,7 @@ from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings
 
 MIN_TYPING_LENGTH = 5
+ 
 SENTENCE_OPTIONS = [
     'this game is relaxing.',
     'this game makes me happy.',
@@ -41,11 +38,11 @@ class EmojiImageButton(ButtonBehavior, Image):
         self.keep_ratio = True
 
 class PostTaskScreen(BaseScreen):
-    task_type = StringProperty('relaxed')
+    task_type = StringProperty('relaxation')
     selected_emoji = StringProperty('')
     typed_length = NumericProperty(0)
     
-    def __init__(self, task_type='relaxed', **kwargs):
+    def __init__(self, task_type='relaxation', **kwargs):
         super(PostTaskScreen, self).__init__(**kwargs)
         self.task_type = task_type
         
@@ -172,10 +169,9 @@ class PostTaskScreen(BaseScreen):
         app = App.get_running_app()
         self.keyboard.set_session(app.user_data['session_id'])
         self.keyboard.set_task(self.task_type)
-        self.keyboard.set_keystroke_callback(self.on_keystroke)
+        self.keyboard.set_on_keystroke_callback(self.on_keystroke)
     
     def reset_screen(self):
-        import time
         self.typed_display.text = ''
         self.typed_length = 0
         self.selected_emoji = ''
@@ -188,7 +184,6 @@ class PostTaskScreen(BaseScreen):
             btn.disabled = True
         self.submit_btn.disabled = True
         self.submit_btn.background_color = Colors.DISABLED_GRAY
-        self.typing_start_time = time.time() #marks when typing begins for the task
         print(f"PostTaskScreen({self.task_type}) reset")
     
     def on_text_change(self, instance, value):
@@ -244,14 +239,8 @@ class PostTaskScreen(BaseScreen):
 
     def on_submit(self, instance):
         from datetime import datetime
-        from data.models import EmotionLabel
-        import time
-        from data.constants import FIXED_SENTENCES
         
-        app = App.get_running_app() #gives the screen access to the global app instance
-        session_id = app.user_data.get('session_id', )
-        task_type = app.user_data.get('task_type', )
-
+        app = App.get_running_app()
         if self.typed_length < MIN_TYPING_LENGTH or not self.selected_emoji:
             print(" Invalid submission")
             return
@@ -283,22 +272,40 @@ class PostTaskScreen(BaseScreen):
         app.user_data.setdefault('tasks', []).append(task_data)
         
         current_game = app.user_data.get('current_game', 1)
+
+        if hasattr(app, 'db'):
+            app.db.flush_keystroke_buffer()
+            
         print(f" Task {current_game} saved: {self.selected_emoji}")
         print(f"   Participant: {task_data['participant_id']}")
         print(f"   Session: {task_data['session_id']}")
         print(f"   Task Type: {task_data['task_type']}")
         print(f"   Typed: {task_data['typed_text'][:30]}...")
         
-        # Navigation (debriefing after games 4+5)
-        if current_game in [4, 5]:
+        # Navigation (debriefing after games 5,6)
+        if current_game in Strings.DEBRIEFING_AFTER_GAMES :
             self.manager.current = f'debriefing_{self.task_type}'
+
         elif current_game == 7:
             # Set session end time on final task
             app.user_data['session_end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.manager.current = 'completion'
+
         else:
-            app.user_data['current_game'] = current_game + 1
-            self.manager.current = f'game_{current_game + 1}_{Strings.GAME_SEQUENCE[current_game]}'
+            # app.user_data['current_game'] = current_game + 1
+            # self.manager.current = f'game_{current_game + 1}_{Strings.GAME_SEQUENCE[current_game]}'
+            next_game_num = current_game + 1
+            
+            app.user_data['current_game'] = next_game_num
+            
+            next_emotion = Strings.GAME_SEQUENCE[next_game_num - 1]
+            next_screen_name = f'game_{next_game_num}_{next_emotion}'
+            
+            print(f" Navigating to: {next_screen_name}")
+            if self.manager.has_screen(next_screen_name):
+                self.manager.current = next_screen_name
+            else:
+                self.manager.current = self.manager.next()
     
     def get_backend_data(self):
         """
@@ -341,3 +348,4 @@ class PostTaskScreen(BaseScreen):
         # Store keystroke in database
         if hasattr(app, 'db'):
             app.db.insert_keystroke(keystroke)
+

@@ -17,6 +17,8 @@ from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings
 from screens.utils import generate_session_id, reset_app_data, increment_session_count
 
+from data.models import Session
+import time
 
 class InstructionsScreen(BaseScreen):
     def __init__(self, **kwargs):
@@ -52,24 +54,24 @@ class InstructionsScreen(BaseScreen):
         demographics = user_data.get('demographics', {})
         
         instructions_text = f"""
-WHAT YOU'LL DO:
-• There are 7 levels of this game. Each level lasts ~1 minute
-• You will give feedback after each level 
-• Select emojis that match your feelings
-• Try to stay relaxed and focused
+            WHAT YOU'LL DO:
+            • There are 7 levels of this game. Each level lasts ~1 minute
+            • You will give feedback after each level 
+            • Select emojis that match your feelings
+            • Try to stay relaxed and focused
 
-IMPORTANT:
-• Some games are intentionally HARD
-• Take your time typing - don't rush
-• All data is COMPLETELY ANONYMOUS
-• You can quit anytime
+            IMPORTANT:
+            • Some games are intentionally HARD
+            • Take your time typing - don't rush
+            • All data is COMPLETELY ANONYMOUS
+            • You can quit anytime
 
-YOUR INFO:
-ID: {user_data.get('participant_id', 'Not set')}
-Age: {demographics.get('age_range', 'Not selected')}
-Gender: {demographics.get('gender', 'Not selected')}
+            YOUR INFO:
+            ID: {user_data.get('participant_id', 'Not set')}
+            Age: {demographics.get('age_range', 'Not selected')}
+            Gender: {demographics.get('gender', 'Not selected')}
 
-Ready to begin? Click START GAME!
+            Ready to begin? Click START GAME!
         """
         
         instructions_label = self.create_subtitle(instructions_text, color=Colors.TEXT_BLACK)
@@ -121,13 +123,23 @@ Ready to begin? Click START GAME!
         
         # Increment session count in persistent storage
         total_sessions = increment_session_count()
+
+        session = Session(
+            session_id=session_id,
+            participant_id=app.user_data.get('participant_id', 'Not set'),
+            start_time=session_start_time,
+            end_time=session_start_time,   
+            status='in_progress'  
+        )
+
+        app.db.insert_session(session)
         
         print(f" GAME STARTED! Session ID: {session_id} (Total sessions: {total_sessions})")
         print(f" Session start time: {session_start_time}")
         print(f" User: {app.user_data}")
         
         # Navigate to first game (game 1: relaxed)
-        self.manager.current = 'game_1_relaxed'
+        self.manager.current = 'game_1_relaxation'
     
     def on_reset(self, instance):
         """Reset app data and return to consent screen"""

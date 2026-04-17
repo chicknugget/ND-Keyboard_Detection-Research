@@ -2,12 +2,6 @@
 # screens/completion_screen.py 
 """
 Completion Screen: Thank you + summary + export + close + replay
- Session summary with stats
- Export Data button (Person C placeholder)
- Replay button (skip to instructions)
- Close App button
- Challenge reminder text
-
 """
 
 from kivy.uix.boxlayout import BoxLayout
@@ -51,7 +45,7 @@ class CompletionScreen(BaseScreen):
         # Session Summary Box
         summary_container = self.create_card(
             size_hint=(1, None),
-            height=Layout.BUTTON_HEIGHT_STANDARD * 3.5,
+            height=Layout.BUTTON_HEIGHT_STANDARD * 4,
             padding=Layout.SPACING_LARGE,
             bg_color=Colors.BACKGROUND_LIGHT_BLUE
         )
@@ -162,12 +156,14 @@ class CompletionScreen(BaseScreen):
         
         # Get dynamic stats from session
         app = App.get_running_app()
-        if not hasattr(app, 'user_data'):
-            app.user_data = {}
 
+        user_data = app.user_data if hasattr(app,'user_data') else {}
+
+        completed_games = user_data.get('completed_games',set())
+        games_completed = len(completed_games)
+        
         tasks = app.user_data.get('tasks', [])
-        tasks_completed = len(tasks)
-        total_keystrokes = sum(len(task.get('typed_text', '')) for task in tasks)
+        total_keystrokes = sum(len(t.get('typed_text', '')) for t in tasks)
 
         # Get total sessions from persistent storage
         participant_data = load_participant_data()
@@ -190,16 +186,16 @@ class CompletionScreen(BaseScreen):
         else:
             session_time = "~25 minutes"
         
-        # Update completion message based on tasks completed
-        if tasks_completed == 7:
-            self.complete_msg.text = 'You completed all 7 tasks successfully!'
-        elif tasks_completed > 0:
-            self.complete_msg.text = f'You completed {tasks_completed} out of 7 tasks.'
+        # UI text
+        if games_completed == 7:
+            self.complete_msg.text = 'You completed all 7 levels successfully!'
+        elif games_completed > 0:
+            self.complete_msg.text = f'You completed {games_completed} levels out of 7 levels.'
         else:
-            self.complete_msg.text = 'Session ended. No tasks completed.'
+            self.complete_msg.text = 'Session ended. No levels completed.'
         
         # Update stats text
-        stats_text = f"""• {tasks_completed} tasks completed
+        stats_text = f"""• {games_completed} levels completed
 • {total_keystrokes} keystrokes captured
 • {session_time} total time
 • Participant ID: {participant_id}
@@ -207,7 +203,7 @@ class CompletionScreen(BaseScreen):
         
         self.stats_label.text = stats_text
         
-        print(f" Completion screen showing: {tasks_completed} tasks, {total_keystrokes} keystrokes")
+        print(f" Completion screen showing: {games_completed} levels, {total_keystrokes} keystrokes")
     
     def on_export(self, instance):
         """Person C: Replace with real export function"""
