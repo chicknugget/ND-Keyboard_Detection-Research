@@ -7,3 +7,5 @@ test_emotion_study.db
 data/__pycache__
 keyboard/__pycache__
 .buildozer/
+emotion_study.db
+screens/__pycache__
