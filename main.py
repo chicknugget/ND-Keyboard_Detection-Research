@@ -7,10 +7,7 @@ from kivy.uix.screenmanager import ScreenManager
 from kivy.core.window import Window
 from kivy.resources import resource_add_path
 from kivy.properties import NumericProperty
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-import shutil
+
 
 # --- PERSON B INTEGRATION: Imports ---
 from data.database import DatabaseManager
@@ -75,44 +72,8 @@ class EmotionStudyApp(App):
             ))
         sm.add_widget(CompletionScreen(name='completion'))
 
-        root = FloatLayout()
-        root.add_widget(sm)
-        self.debug_btn = Button(
-            text='Debug DB',
-            size_hint=(None, None),
-            size=(100, 40),
-            pos_hint={'right': 1, 'top': 0.15},
-            background_color=(1, 0, 0, 0.8),
-            font_size=10,
-        )
-        self.debug_btn.bind(on_press=self.export_debug)
-        root.add_widget(self.debug_btn)
-
-        return root
+        return sm
     
-    def export_debug(self, instance):
-        try:
-            export_dir = self.user_data_dir
-            summary_path = os.path.join(export_dir, 'debug_summary.txt')
-            db_export_path = os.path.join(export_dir, 'debug_database.db')
-            shutil.copy2(self.db.db_path, db_export_path)
-
-            with open(summary_path, 'w') as f:
-                f.write("=== DATABASE DEBUG SUMMARY ===\n")
-                f.write(f"Export time: {datetime.now()}\n")
-                f.write(f"Session ID: {self.user_data.get('session_id', 'No session yet')}\n")
-                f.write(f"Keystrokes: {self.db.count_keystrokes(self.user_data.get('session_id', ''))}\n")
-                f.write(f"Emotion labels: {len(self.db.get_emotion_labels(self.user_data.get('session_id', '')))}\n")
-                f.write(f"Database path: {self.db.db_path}\n")
-                f.write(f"Export path: {export_dir}\n")
-            
-            print(f"Debug export saved to: {summary_path}")
-            self.debug_btn.text = "Exported!"
-        except Exception as e:
-            print(f"Debug export failed: {e}")
-            self.debug_btn.text = "Export Failed"
-
-
     def on_start(self):
         self.db = DatabaseManager()
         print("Database initialized!")
