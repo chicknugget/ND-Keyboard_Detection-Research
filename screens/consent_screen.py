@@ -1,13 +1,16 @@
-
 # screens/consent_screen.py
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.app import App
 from kivy.properties import ListProperty
+from kivy.core.window import Window
+from kivy.metrics import dp
+from kivy.graphics import Color, RoundedRectangle
 
 from screens.base_screen import BaseScreen
-from screens.config import Colors, Layout, Typography, Strings
+from screens.config import Colors, Layout, Typography, Strings, PixelUI
+from screens.pixel_ui_wrapper import PixelFrame
 
 
 class ConsentScreen(BaseScreen):
@@ -15,16 +18,22 @@ class ConsentScreen(BaseScreen):
 
     def __init__(self, **kwargs):
         super(ConsentScreen, self).__init__(**kwargs)
-         
-        main_layout = BoxLayout(
-            orientation='vertical',
-            padding=Layout.PADDING_LARGE,
-            spacing=Layout.SPACING_STANDARD
+        
+        # Create pixel frame wrapper
+        self.pixel_frame = PixelFrame(
+            title='INFORMED CONSENT',
+            show_stars=True,
+            show_header=True,
+            show_quit=False,
+            show_reset=False
         )
         
-        # Title 
-        title = self.create_title('INFORMED CONSENT')
-        main_layout.add_widget(title)
+        # Original main layout (preserved exactly)
+        main_layout = BoxLayout(
+            orientation='vertical',
+            padding=Layout.PADDING_STANDARD,
+            spacing=Layout.SPACING_STANDARD
+        )
         
         # Scrollable info section
         info_text = """
@@ -59,7 +68,8 @@ By checking all boxes below, you confirm:
         from kivy.uix.label import Label
         info_label = Label(
             text=info_text,
-            font_size=Typography.BODY_SMALL,
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_SMALL,
             color=Colors.TEXT_BLACK,  
             halign='left',
             valign='top',
@@ -115,7 +125,8 @@ By checking all boxes below, you confirm:
             from kivy.uix.label import Label
             cb_label = Label(
                 text=text,
-                font_size=Typography.BODY_SMALL,
+                font_name=PixelUI.FONT_BODY,
+                font_size=Typography.PIXEL_BODY_SMALL,
                 color=Colors.TEXT_BLACK,  
                 halign='left',
                 valign='middle',
@@ -168,7 +179,9 @@ By checking all boxes below, you confirm:
 
         main_layout.add_widget(buttons_layout)
         
-        self.add_widget(main_layout)
+        # Set content to pixel frame
+        self.pixel_frame.set_content(main_layout)
+        self.add_widget(self.pixel_frame)
 
     def update_consent_button(self, instance, value):
         """Enable CONSENT button only when ALL 3 checkboxes checked"""
@@ -189,3 +202,5 @@ By checking all boxes below, you confirm:
         """Close app when declined"""
         print("Study declined - Closing app")
         App.get_running_app().stop()
+
+        
