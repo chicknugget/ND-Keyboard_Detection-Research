@@ -19,7 +19,7 @@ from screens.config import Colors, Layout, Typography
 GAME_SETTINGS = {
     'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 5, 'bg_music':'relaxation'},
     'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'happy'},
-    'boredom':    {'rigged': None, 'speed': 0.5, 'no_of_glasses': 1, 'points_show': True, 'total_rounds': 5, 'bg_music':'boredom'},
+    'boredom':    {'rigged': None, 'speed': 0.5, 'no_of_glasses': 1, 'points_show': True, 'total_rounds': 1, 'bg_music':'boredom'},
     'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 5, 'bg_music':'sad'},
     'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 5, 'bg_music':'frustrated'},
     'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 5, 'bg_music':'stress'},

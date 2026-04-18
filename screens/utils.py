@@ -19,9 +19,7 @@ def generate_participant_id():
     """
     Generate unique participant ID
     Format: P_YYYYMMDD_HHMMSS
-    
-    Returns:
-        str: Unique participant ID
+    Returns: str: Unique participant ID
     """
     now = datetime.now()
     date_str = now.strftime("%Y%m%d")
@@ -34,10 +32,8 @@ def generate_participant_id():
 def generate_session_id():
     """
     Generate unique session ID for each game playthrough
-    Format: SESSION_YYYYMMDD_HHMMSS_<counter>
-    
-    Returns:
-        str: Unique session ID
+    Format: SESSION_YYYYMMDD_HHMMSS_<counter>   
+    Returns: str: Unique session ID
     """
     now = datetime.now()
     date_str = now.strftime("%Y%m%d")
@@ -55,9 +51,7 @@ def generate_session_id():
 def get_storage_path():
     """
     Get the path to persistent storage file
-    
-    Returns:
-        str: Path to participant_data.json
+    Returns: str: Path to participant_data.json
     """
     app = App.get_running_app()
     if app:
@@ -72,9 +66,6 @@ def get_storage_path():
 def load_participant_data():
     """
     Load participant data from persistent storage
-    
-    Returns:
-        dict: Participant data or empty dict if not found
     """
     storage_path = get_storage_path()
     
@@ -95,12 +86,6 @@ def load_participant_data():
 def save_participant_data(data):
     """
     Save participant data to persistent storage
-    
-    Args:
-        data (dict): Participant data to save
-    
-    Returns:
-        bool: True if saved successfully, False otherwise
     """
     storage_path = get_storage_path()
     
@@ -117,12 +102,6 @@ def save_participant_data(data):
 def get_or_create_participant_id():
     """
     Get existing participant ID or create new one
-    Checks persistent storage first
-    
-    Returns:
-        tuple: (participant_id, is_new)
-            - participant_id (str): The participant ID
-            - is_new (bool): True if newly created, False if loaded from storage
     """
     data = load_participant_data()
     
@@ -143,9 +122,6 @@ def get_or_create_participant_id():
 def increment_session_count():
     """
     Increment the total session count and session counter in participant data
-    
-    Returns:
-        int: New session count
     """
     data = load_participant_data()
     data['total_sessions'] = data.get('total_sessions', 0) + 1
@@ -157,9 +133,6 @@ def increment_session_count():
 def clear_participant_data():
     """
     Clear all participant data (used on Reset)
-    
-    Returns:
-        bool: True if cleared successfully
     """
     storage_path = get_storage_path()
     
@@ -180,10 +153,6 @@ def clear_participant_data():
 def init_app_data():
     """
     Initialize app data structure
-    Call this when app starts
-    
-    Returns:
-        dict: Initial app data structure
     """
     participant_id, is_new = get_or_create_participant_id()
     
@@ -202,10 +171,6 @@ def init_app_data():
 def reset_app_data():
     """
     Reset all app data and clear participant ID
-    Returns to consent screen with new participant
-    
-    Returns:
-        dict: New app data structure
     """
     clear_participant_data()
     new_data = init_app_data()
@@ -216,29 +181,8 @@ def reset_app_data():
 def get_backend_data():
     """
     Get all collected data formatted for backend submission
-    
     Returns:
-        dict: Complete session data ready for backend API with structure:
-            {
-                'participant_id': str,
-                'session_id': str,
-                'session_start_time': str,
-                'session_end_time': str,
-                'tasks': [
-                    {
-                        'participant_id': str,
-                        'session_id': str,
-                        'session_start_time': str,
-                        'task_number': int,
-                        'task_type': str,
-                        'typed_text': str,
-                        'selected_emoji': str,
-                        'text_length': int,
-                        'task_timestamp': str
-                    },
-                    ...
-                ]
-            }
+        dict:{}
     """
     app = App.get_running_app()
     
@@ -250,5 +194,5 @@ def get_backend_data():
         'session_id': app.user_data.get('session_id', ''),
         'session_start_time': app.user_data.get('session_start_time', ''),
         'session_end_time': app.user_data.get('session_end_time', ''),
-        'tasks': app.user_data.get('tasks', [])
+        'level': app.user_data.get('tasks', [])
     }

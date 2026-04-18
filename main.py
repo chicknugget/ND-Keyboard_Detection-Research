@@ -10,6 +10,8 @@ Emotion Study App - Complete Implementation
  Quit functionality
  Replay functionality
 """
+from kivy.config import Config
+Config.set('graphics', 'resizable', True)
 
 import os
 
@@ -86,7 +88,7 @@ class EmotionStudyApp(App):
     # completionscreen
         sm.add_widget(CompletionScreen(name='completion'))
         
-        # ===== STARTING SCREEN =====
+        # START SCREEN
         # Check if first time or returning user
         if self.user_data.get('is_first_time', True):
             sm.current = 'consent'  # First time: start from consent
@@ -109,8 +111,6 @@ class EmotionStudyApp(App):
 
 
 if __name__ == '__main__':
-
-    init_app_config()
     EmotionStudyApp().run()
 
 
