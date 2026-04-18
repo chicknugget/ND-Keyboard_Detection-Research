@@ -1,254 +1,411 @@
+# screens/post_task_screen.py 
 
-
-# screens/utils.py
-"""
-Utility functions for participant/session ID management and data persistence
-"""
-
-import json
-import time
-from datetime import datetime
-from pathlib import Path
 import os
+
+from keyboard.custom_keyboard import CustomKeyboard
+from data.models import KeystrokeEvent
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+from kivy.uix.label import Label
 from kivy.app import App
+from kivy.properties import StringProperty, NumericProperty
+from kivy.graphics import Color, RoundedRectangle
+from kivy.uix.scrollview import ScrollView
+from kivy.metrics import dp
+from kivy.uix.image import Image
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.clock import Clock
 
+from screens.base_screen import BaseScreen
+from screens.config import Colors, Layout, Typography, Strings, PixelUI, BASE_PATH
+from screens.pixel_ui_wrapper import PixelFrame
 
-# ID GENERATION
+MIN_TYPING_LENGTH = 16
+ 
+SENTENCE_OPTIONS = [
+    'This Game is Relaxing.',
+    'This Game makes me Happy.',
+    'This Game makes me Sad.',
+    'This Game is Frustrating.',
+    'This Game makes me Stressed.',
+    'This Game is Boring.'
+]
 
-def generate_participant_id():
-    """
-    Generate unique participant ID
-    Format: P_YYYYMMDD_HHMMSS
+class EmojiImageButton(ButtonBehavior, Image):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.allow_stretch = True
+        self.keep_ratio = True
+
+class PostTaskScreen(BaseScreen):
+    task_type = StringProperty('relaxation')
+    selected_emoji = StringProperty('')
+    typed_length = NumericProperty(0)
     
-    Returns:
-        str: Unique participant ID
-    """
-    now = datetime.now()
-    date_str = now.strftime("%Y%m%d")
-    time_str = now.strftime("%H%M%S")
+    def __init__(self, task_type='relaxation', **kwargs):
+        super(PostTaskScreen, self).__init__(**kwargs)
+        self.task_type = task_type
+        
+        # Create pixel frame wrapper with title
+        self.pixel_frame = PixelFrame(
+            title='FEEDBACK',
+            show_stars=False,
+            show_header=True,
+            show_quit=False,
+            show_reset=False
+        )
+        
+        # Main vertical layout (preserved structure)
+        main_layout = BoxLayout(
+            orientation='vertical',
+            padding=[dp(6), dp(4), dp(6), dp(4)],
+            spacing=dp(6)
+        )
+        
+        # Sentences instruction card 
+        sentences_card = self.create_card(
+            size_hint=(1, None), 
+            height=dp(140),
+            padding=dp(6)
+        )
+        
+        sentences_text = '\n'.join([f"{i+1}. {s}" for i, s in enumerate(SENTENCE_OPTIONS)])
+        sentences_label = Label(
+            text=sentences_text,
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_SMALL,
+            color=Colors.TEXT_BLACK,
+            halign='left',
+            valign='top',
+            text_size=(None, None)
+        )
+        sentences_label.bind(size=sentences_label.setter('text_size'))
+        sentences_card.add_widget(sentences_label)
+        main_layout.add_widget(sentences_card)
+        
+        # Input box
+        self.typed_display = self.create_input_field(
+            hint_text='Tap here & type any one sentence here...',
+            multiline=True
+        )
+        self.typed_display.font_name = PixelUI.FONT_BODY
+        # Block the OS keyboard — input comes from CustomKeyboard
+        # is_focusable is kept True so tapping shows a cursor and triggers focus
+        self.typed_display.keyboard_mode = 'managed'
+        self.typed_display.is_focusable = True
+        # self.typed_display.is_focusable = False
+        self.typed_display.bind(text=self.on_text_change)
+        self.typed_display.bind(focus=self.on_text_focus)
+        main_layout.add_widget(self.typed_display)
+        
+        # Character counter
+        self.char_counter = Label(
+            text=f'0 / {MIN_TYPING_LENGTH} characters (minimum)',
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.BODY_TINY,
+            color=Colors.WARNING_ORANGE,
+            size_hint_y=None,
+            height=dp(16),
+            halign='right'
+            # width will auto-adjust based on text
+        )
+        main_layout.add_widget(self.char_counter)
+        
+        #Emoji selection title
+        self.emoji_title = Label(
+            text='Select your feeling:',
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_SMALL,
+            color=Colors.TEXT_GRAY,
+            size_hint_y=None,
+            height=dp(20),
+            opacity=0
+        )
+        main_layout.add_widget(self.emoji_title)
+        
+        # Emoji grid
+        self.emoji_grid = GridLayout(
+            cols=6,
+            size_hint_y=None,
+            height=dp(60),
+            spacing=dp(4),
+            padding=dp(2)
+        )
+        self.emoji_buttons = []
+        
+        for emoji in Strings.FIXED_EMOJIS:
+            btn = EmojiImageButton(
+                source= os.path.join(BASE_PATH,emoji['source']),
+                size_hint=(None, None),
+                size=(dp(45), dp(45)),
+                opacity=0.5
+            )
+            btn.emoji_id = emoji['id']
+            btn.bind(on_press=lambda x, e=emoji['id']: self.select_emoji(e))
+            self.emoji_grid.add_widget(btn)
+            self.emoji_buttons.append(btn)
+
+        # Emoji row background card
+        self.emoji_card = self.create_card(
+            size_hint=(1, None),
+            height=dp(72),
+            padding=dp(4),
+            bg_color=Colors.BACKGROUND_LIGHT_GRAY
+        )
+        self.emoji_card.opacity = 0
+        self.emoji_card.add_widget(self.emoji_grid)
+        main_layout.add_widget(self.emoji_card)
+        
+        # ===== KEYBOARD PLACEHOLDER (Enlarged) =====
+        self.keyboard_placeholder = self.create_card(
+            size_hint=(1, None),
+            height=0,  # Hidden initially
+            padding=dp(1)
+        )
+        self.keyboard_placeholder.opacity = 0
+        
+        # Create larger keyboard - increased height
+        self.keyboard = CustomKeyboard()
+        self.keyboard_placeholder.add_widget(self.keyboard)
+
+        main_layout.add_widget(self.keyboard_placeholder)
+
+        
+        # Submit button container
+        submit_container = BoxLayout(
+            size_hint_y=None,
+            height=dp(56),
+            padding=(dp(2), 0)
+        )
+        self.submit_btn = self.create_button(
+            text=Strings.BTN_SUBMIT,
+            on_press=self.on_submit,
+            button_type='success',
+            disabled=True
+        )
+        submit_container.add_widget(self.submit_btn)
+        main_layout.add_widget(submit_container)
+        
+        # Set content to pixel frame
+        self.pixel_frame.set_content(main_layout)
+        self.add_widget(self.pixel_frame)
     
-    return f"P_{date_str}_{time_str}"
+    def on_enter(self):
+        """Reset for fresh task"""
+        super().on_enter()
+        self.reset_screen()
+        self.typed_display.disabled = False
+        self.typed_display.readonly = False
+        Clock.schedule_once(lambda *_: setattr(self.typed_display, 'focus', False), 0)
 
-
-
-def generate_session_id():
-    """
-    Generate unique session ID for each game playthrough
-    Format: SESSION_YYYYMMDD_HHMMSS_<counter>
+        app = App.get_running_app()
+        self.keyboard.set_session(app.user_data['session_id'])
+        self.keyboard.set_task(self.task_type)
+        self.keyboard.set_on_keystroke_callback(self.on_keystroke)
+        self.keyboard.reset()
     
-    Returns:
-        str: Unique session ID
-    """
-    now = datetime.now()
-    date_str = now.strftime("%Y%m%d")
-    time_str = now.strftime("%H%M%S")
-    
-    # Get counter from persistent storage
-    data = load_participant_data()
-    counter = data.get('session_counter', 0) + 1
-    
-    return f"SESSION_{date_str}_{time_str}_{counter:04d}"
+    def reset_screen(self):
+        self.typed_display.text = ''
+        self.typed_display.focus = False
+        self.typed_display.disabled = False
+        self.typed_display.readonly = False
+        self.typed_length = 0
+        self.selected_emoji = ''
+        self.char_counter.text = f'0 / {MIN_TYPING_LENGTH} characters (minimum)'
+        self.char_counter.color = Colors.WARNING_ORANGE
+        self.emoji_title.opacity = 0
+        self.emoji_grid.opacity = 0
+        self.emoji_card.opacity = 0
+        for btn in self.emoji_buttons:
+            btn.opacity = 0
+            btn.disabled = True
+        self.submit_btn.disabled = True
+        self.submit_btn.background_color = Colors.DISABLED_GRAY
+        self.emoji_click_history = []   # track every emoji tap
+        # Hide the keyboard on reset
+        self.keyboard_placeholder.height = 0
+        self.keyboard_placeholder.opacity = 0
+        # Show title when keyboard is hidden
+        self.pixel_frame.show_title()
+        print(f"PostTaskScreen({self.task_type}) reset")
 
-
-# DATA PERSISTENCE
-
-def get_storage_path():
-    """
-    Get the path to persistent storage file
-    
-    Returns:
-        str: Path to participant_data.json
-    """
-    app = App.get_running_app()
-    if app:
-        # Use Kivy's user_data_dir for persistent storage
-        storage_dir = app.user_data_dir
-        if not os.path.exists(storage_dir):
-            os.makedirs(storage_dir)
-        return os.path.join(storage_dir, 'participant_data.json')
-    return 'participant_data.json'
-
-
-def load_participant_data():
-    """
-    Load participant data from persistent storage
-    
-    Returns:
-        dict: Participant data or empty dict if not found
-    """
-    storage_path = get_storage_path()
-    
-    try:
-        if os.path.exists(storage_path):
-            with open(storage_path, 'r') as f:
-                data = json.load(f)
-                print(f" Loaded participant data from {storage_path}")
-                return data
+    def on_text_focus(self, instance, focused):
+        """Show custom keyboard when text box is tapped; hide when focus is lost."""
+        if focused:
+            # Enlarged keyboard height
+            self.keyboard_placeholder.height = dp(188)
+            self.keyboard_placeholder.opacity = 1
         else:
-            print(f" No existing participant data found at {storage_path}")
-            return {}
-    except Exception as e:
-        print(f" Error loading participant data: {e}")
-        return {}
-
-
-def save_participant_data(data):
-    """
-    Save participant data to persistent storage
+            self.keyboard_placeholder.height = 0
+            self.keyboard_placeholder.opacity = 0
     
-    Args:
-        data (dict): Participant data to save
-    
-    Returns:
-        bool: True if saved successfully, False otherwise
-    """
-    storage_path = get_storage_path()
-    
-    try:
-        with open(storage_path, 'w') as f:
-            json.dump(data, f, indent=2)
-        print(f" Saved participant data to {storage_path}")
-        return True
-    except Exception as e:
-        print(f" Error saving participant data: {e}")
-        return False
-
-
-def get_or_create_participant_id():
-    """
-    Get existing participant ID or create new one
-    Checks persistent storage first
-    
-    Returns:
-        tuple: (participant_id, is_new)
-            - participant_id (str): The participant ID
-            - is_new (bool): True if newly created, False if loaded from storage
-    """
-    data = load_participant_data()
-    
-    if 'participant_id' in data and data['participant_id']:
-        print(f" Retrieved existing participant ID: {data['participant_id']}")
-        return data['participant_id'], False
-    else:
-        new_id = generate_participant_id()
-        data['participant_id'] = new_id
-        data['participant_counter'] = data.get('participant_counter', 0) + 1
-        data['created_at'] = time.time()
-        data['total_sessions'] = 0
-        save_participant_data(data)
-        print(f" Created new participant ID: {new_id}")
-        return new_id, True
-
-
-def increment_session_count():
-    """
-    Increment the total session count and session counter in participant data
-    
-    Returns:
-        int: New session count
-    """
-    data = load_participant_data()
-    data['total_sessions'] = data.get('total_sessions', 0) + 1
-    data['session_counter'] = data.get('session_counter', 0) + 1
-    save_participant_data(data)
-    return data['total_sessions']
-
-
-def clear_participant_data():
-    """
-    Clear all participant data (used on Reset)
-    
-    Returns:
-        bool: True if cleared successfully
-    """
-    storage_path = get_storage_path()
-    
-    try:
-        if os.path.exists(storage_path):
-            os.remove(storage_path)
-            print(f" Cleared participant data from {storage_path}")
+    def on_text_change(self, instance, value):
+        self.typed_length = len(value)
+        self.char_counter.text = f'{self.typed_length} / {MIN_TYPING_LENGTH} characters (minimum)'
+        
+        if self.typed_length >= MIN_TYPING_LENGTH:
+            #  ENABLE EMOJIS
+            self.char_counter.color = Colors.SUCCESS_GREEN
+            self.emoji_title.opacity = 1
+            self.emoji_grid.opacity = 1
+            self.emoji_card.opacity = 1
+            for btn in self.emoji_buttons:
+                btn.opacity = 0.8
+                btn.disabled = False
         else:
-            print(f" No participant data to clear")
-        return True
-    except Exception as e:
-        print(f" Error clearing participant data: {e}")
-        return False
-
-
-# APP DATA HELPERS
-
-def init_app_data():
-    """
-    Initialize app data structure
-    Call this when app starts
+            #  DISABLE EMOJIS
+            self.char_counter.color = Colors.WARNING_ORANGE
+            self.emoji_title.opacity = 0.1
+            self.emoji_grid.opacity = 0.1
+            self.emoji_card.opacity = 0.1
+            for btn in self.emoji_buttons:
+                btn.opacity = 0.1
+                btn.disabled = True
+            self.selected_emoji = ''
+            self.submit_btn.disabled = True
+            self.submit_btn.background_color = Colors.DISABLED_GRAY
     
-    Returns:
-        dict: Initial app data structure
-    """
-    participant_id, is_new = get_or_create_participant_id()
+    def select_emoji(self, emoji_id):
+        self.selected_emoji = emoji_id
+        self.emoji_click_history.append(emoji_id)   # record every tap
+        # Reset all to muted
+        for btn in self.emoji_buttons:
+            btn.opacity = 0.8
+        # Highlight selected
+        for btn in self.emoji_buttons:
+            if btn.emoji_id == emoji_id:
+                btn.opacity = 1.0
+                break
+        # Enable submit
+        self.submit_btn.disabled = False
+        self.submit_btn.background_color = Colors.SUCCESS_GREEN
     
-    return {
-        'participant_id': participant_id,
-        'is_first_time': is_new,
-        'session_id': None,  # Generated when starting game
-        'current_game': 0,   # 0-6 (7 games total)
-        'demographics': {},
-        'tasks': [],         # List of completed tasks
-        'debriefing_complete': False,
-        'session_counter': 0  # Initialize session counter
-    }
+    def add_char(self, char):
+        """Keyboard input handler - Person C uses this"""
+        self.typed_display.text += char
+        # Trigger text change to update emoji state
+        self.on_text_change(self.typed_display, self.typed_display.text)
+
+    def backspace(self, instance):
+        """Backspace handler - Person C uses this"""
+        self.typed_display.text = self.typed_display.text[:-1]
+        # Trigger text change to update emoji state
+        self.on_text_change(self.typed_display, self.typed_display.text)
 
 
-def reset_app_data():
-    """
-    Reset all app data and clear participant ID
-    Returns to consent screen with new participant
-    
-    Returns:
-        dict: New app data structure
-    """
-    clear_participant_data()
-    new_data = init_app_data()
-    print(" App data reset - new participant created")
-    return new_data
+    def on_submit(self, instance):
+        from datetime import datetime
+        
+        app = App.get_running_app()
+        if self.typed_length < MIN_TYPING_LENGTH or not self.selected_emoji:
+            print(" Invalid submission")
+            return
+        self.typed_display.focus = False
+        
+        # Get current timestamp for this task
+        task_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Build complete task data for backend submission
+        task_data = {
+            # Identifiers
+            'participant_id': app.user_data.get('participant_id', ''),
+            'session_id': app.user_data.get('session_id', ''),
+            
+            # Session timing
+            'session_start_time': app.user_data.get('session_start_time', ''),
+            
+            # Task details
+            'task_number': app.user_data.get('current_game', 0),
+            'task_type': self.task_type,
+            'typed_text': self.typed_display.text.strip(),
+            'selected_emoji': self.selected_emoji,           # final choice
+            'emoji_click_history': list(self.emoji_click_history),  # all taps in order
+            
+            # Additional metadata
+            'text_length': self.typed_length,
+            'task_timestamp': task_timestamp
+        }
+        
+        # Append to tasks list
+        app.user_data.setdefault('tasks', []).append(task_data)
+        
+        current_game = app.user_data.get('current_game', 1)
 
+        if hasattr(app, 'db'):
+            app.db.flush_keystroke_buffer()
+            
+        print(f" level {current_game} saved. emoji selected : {self.selected_emoji}")
+        print(f"   Participant: {task_data['participant_id']}")
+        print(f"   Session: {task_data['session_id']}")
+        print(f"   Task Type: {task_data['task_type']}")
+        print(f"   Typed: {task_data['typed_text'][:30]}...")
+        
+        # Navigation (debriefing after games 5,6)
+        if current_game in Strings.DEBRIEFING_AFTER_GAMES :
+            self.manager.current = f'debriefing_{self.task_type}'
 
-def get_backend_data():
-    """
-    Get all collected data formatted for backend submission
+        elif current_game == 7:
+            # Set session end time on final task
+            app.user_data['session_end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.manager.current = 'completion'
+
+        else:
+            # app.user_data['current_game'] = current_game + 1
+            # self.manager.current = f'game_{current_game + 1}_{Strings.GAME_SEQUENCE[current_game]}'
+            next_game_num = current_game + 1
+            
+            app.user_data['current_game'] = next_game_num
+            
+            next_emotion = Strings.GAME_SEQUENCE[next_game_num - 1]
+            next_screen_name = f'game_{next_game_num}_{next_emotion}'
+            
+            print(f" Navigating to: {next_screen_name}")
+            if self.manager.has_screen(next_screen_name):
+                self.manager.current = next_screen_name
+            else:
+                self.manager.current = self.manager.next()
     
-    Returns:
-        dict: Complete session data ready for backend API with structure:
-            {
-                'participant_id': str,
-                'session_id': str,
-                'session_start_time': str,
-                'session_end_time': str,
-                'tasks': [
-                    {
-                        'participant_id': str,
-                        'session_id': str,
-                        'session_start_time': str,
-                        'task_number': int,
-                        'task_type': str,
-                        'typed_text': str,
-                        'selected_emoji': str,
-                        'text_length': int,
-                        'task_timestamp': str
-                    },
-                    ...
-                ]
-            }
-    """
-    app = App.get_running_app()
-    
-    if not app:
-        return {}
-    
-    return {
-        'participant_id': app.user_data.get('participant_id', ''),
-        'session_id': app.user_data.get('session_id', ''),
-        'session_start_time': app.user_data.get('session_start_time', ''),
-        'session_end_time': app.user_data.get('session_end_time', ''),
-        'tasks': app.user_data.get('tasks', [])
-    }
+    def get_backend_data(self):
+        """
+        Get all collected data formatted for backend submission
+        
+        Returns:
+            dict: Complete session data ready for backend API
+        """
+        app = App.get_running_app()
+        
+        return {
+            'participant_id': app.user_data.get('participant_id', ''),
+            'session_id': app.user_data.get('session_id', ''),
+            'session_start_time': app.user_data.get('session_start_time', ''),
+            'session_end_time': app.user_data.get('session_end_time', ''),
+            'tasks': app.user_data.get('tasks', [])
+        }
+
+    def on_keystroke(self, keystroke: KeystrokeEvent):
+        """
+        Receives keystrokes from CustomKeyboard
+        - Updates visible text
+        - Stores keystroke in DB
+        """
+
+        app = App.get_running_app()
+
+        # Handle special keys
+        if keystroke.key_id == 'key_backspace':
+            self.backspace(None)
+            keystroke.is_backspace = True
+
+        elif keystroke.key_id == 'key_done':
+            # Optional: trigger submit
+            return
+
+        else:
+            self.add_char(keystroke.key_char)
+
+        # Store keystroke in database
+        if hasattr(app, 'db'):
+            app.db.insert_keystroke(keystroke)
+            
