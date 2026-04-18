@@ -1,4 +1,3 @@
-
 # screens/post_task_screen.py 
 
 import os
@@ -17,19 +16,21 @@ from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.clock import Clock
 
 from screens.base_screen import BaseScreen
-from screens.config import Colors, Layout, Typography, Strings, BASE_PATH
+from screens.config import Colors, Layout, Typography, Strings, PixelUI, BASE_PATH
+from screens.pixel_ui_wrapper import PixelFrame
 
 MIN_TYPING_LENGTH = 16
  
 SENTENCE_OPTIONS = [
-    'this game is relaxing.',
-    'this game makes me happy.',
-    'this game makes me sad.',
-    'this game is frustrating.',
-    'this game makes me stressed.',
-    'this game is boring.'
+    'This Game is Relaxing.',
+    'This Game makes me Happy.',
+    'This Game makes me Sad.',
+    'This Game is Frustrating.',
+    'This Game makes me Stressed.',
+    'This Game is Boring.'
 ]
 
 class EmojiImageButton(ButtonBehavior, Image):
@@ -47,28 +48,34 @@ class PostTaskScreen(BaseScreen):
         super(PostTaskScreen, self).__init__(**kwargs)
         self.task_type = task_type
         
-        # Main vertical layout
-        main_layout = BoxLayout(
-            orientation='vertical',
-            padding=Layout.PADDING_STANDARD,
-            spacing=dp(8)
+        # Create pixel frame wrapper with title
+        self.pixel_frame = PixelFrame(
+            title='FEEDBACK',
+            show_stars=False,
+            show_header=True,
+            show_quit=False,
+            show_reset=False
         )
         
-        # Feedback" title 
-        header = self.create_header_bar( show_quit=False, show_reset=False, title='Feedback' )
-        main_layout.add_widget(header)
+        # Main vertical layout (preserved structure)
+        main_layout = BoxLayout(
+            orientation='vertical',
+            padding=[dp(6), dp(4), dp(6), dp(4)],
+            spacing=dp(6)
+        )
         
         # Sentences instruction card 
         sentences_card = self.create_card(
             size_hint=(1, None), 
             height=dp(140),
-            padding=dp(10)
+            padding=dp(6)
         )
         
         sentences_text = '\n'.join([f"{i+1}. {s}" for i, s in enumerate(SENTENCE_OPTIONS)])
         sentences_label = Label(
             text=sentences_text,
-            font_size=Typography.BODY_SMALL,
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_SMALL,
             color=Colors.TEXT_BLACK,
             halign='left',
             valign='top',
@@ -80,15 +87,23 @@ class PostTaskScreen(BaseScreen):
         
         # Input box
         self.typed_display = self.create_input_field(
-            hint_text='Type any one sentence here...',
+            hint_text='Tap here & type any one sentence here...',
             multiline=True
         )
+        self.typed_display.font_name = PixelUI.FONT_BODY
+        # Block the OS keyboard — input comes from CustomKeyboard
+        # is_focusable is kept True so tapping shows a cursor and triggers focus
+        self.typed_display.keyboard_mode = 'managed'
+        self.typed_display.is_focusable = True
+        # self.typed_display.is_focusable = False
         self.typed_display.bind(text=self.on_text_change)
+        self.typed_display.bind(focus=self.on_text_focus)
         main_layout.add_widget(self.typed_display)
         
         # Character counter
         self.char_counter = Label(
             text=f'0 / {MIN_TYPING_LENGTH} characters (minimum)',
+            font_name=PixelUI.FONT_BODY,
             font_size=Typography.BODY_TINY,
             color=Colors.WARNING_ORANGE,
             size_hint_y=None,
@@ -101,7 +116,8 @@ class PostTaskScreen(BaseScreen):
         #Emoji selection title
         self.emoji_title = Label(
             text='Select your feeling:',
-            font_size=Typography.BODY_SMALL,
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_SMALL,
             color=Colors.TEXT_GRAY,
             size_hint_y=None,
             height=dp(20),
@@ -121,7 +137,7 @@ class PostTaskScreen(BaseScreen):
         
         for emoji in Strings.FIXED_EMOJIS:
             btn = EmojiImageButton(
-                source= emoji['source'],
+                source= os.path.join(BASE_PATH,emoji['source']),
                 size_hint=(None, None),
                 size=(dp(45), dp(45)),
                 opacity=0.5
@@ -130,15 +146,27 @@ class PostTaskScreen(BaseScreen):
             btn.bind(on_press=lambda x, e=emoji['id']: self.select_emoji(e))
             self.emoji_grid.add_widget(btn)
             self.emoji_buttons.append(btn)
+
+        # Emoji row background card
+        self.emoji_card = self.create_card(
+            size_hint=(1, None),
+            height=dp(72),
+            padding=dp(4),
+            bg_color=Colors.BACKGROUND_LIGHT_GRAY
+        )
+        self.emoji_card.opacity = 0
+        self.emoji_card.add_widget(self.emoji_grid)
+        main_layout.add_widget(self.emoji_card)
         
-        main_layout.add_widget(self.emoji_grid)
-        
-        # ===== 5. KEYBOARD PLACEHOLDER (Person C) =====
+        # ===== KEYBOARD PLACEHOLDER (Enlarged) =====
         self.keyboard_placeholder = self.create_card(
             size_hint=(1, None),
-            height=dp(120),
-            padding=dp(4)
+            height=0,  # Hidden initially
+            padding=dp(1)
         )
+        self.keyboard_placeholder.opacity = 0
+        
+        # Create larger keyboard - increased height
         self.keyboard = CustomKeyboard()
         self.keyboard_placeholder.add_widget(self.keyboard)
 
@@ -149,7 +177,7 @@ class PostTaskScreen(BaseScreen):
         submit_container = BoxLayout(
             size_hint_y=None,
             height=dp(56),
-            padding=(Layout.PADDING_STANDARD, 0)
+            padding=(dp(2), 0)
         )
         self.submit_btn = self.create_button(
             text=Strings.BTN_SUBMIT,
@@ -160,32 +188,58 @@ class PostTaskScreen(BaseScreen):
         submit_container.add_widget(self.submit_btn)
         main_layout.add_widget(submit_container)
         
-        self.add_widget(main_layout)
+        # Set content to pixel frame
+        self.pixel_frame.set_content(main_layout)
+        self.add_widget(self.pixel_frame)
     
     def on_enter(self):
         """Reset for fresh task"""
         super().on_enter()
         self.reset_screen()
+        self.typed_display.disabled = False
+        self.typed_display.readonly = False
+        Clock.schedule_once(lambda *_: setattr(self.typed_display, 'focus', False), 0)
 
         app = App.get_running_app()
         self.keyboard.set_session(app.user_data['session_id'])
         self.keyboard.set_task(self.task_type)
         self.keyboard.set_on_keystroke_callback(self.on_keystroke)
+        self.keyboard.reset()
     
     def reset_screen(self):
         self.typed_display.text = ''
+        self.typed_display.focus = False
+        self.typed_display.disabled = False
+        self.typed_display.readonly = False
         self.typed_length = 0
         self.selected_emoji = ''
         self.char_counter.text = f'0 / {MIN_TYPING_LENGTH} characters (minimum)'
         self.char_counter.color = Colors.WARNING_ORANGE
-        self.emoji_title.opacity = 0.1
-        self.emoji_grid.opacity = 0.1
+        self.emoji_title.opacity = 0
+        self.emoji_grid.opacity = 0
+        self.emoji_card.opacity = 0
         for btn in self.emoji_buttons:
-            btn.opacity = 0.5
+            btn.opacity = 0
             btn.disabled = True
         self.submit_btn.disabled = True
         self.submit_btn.background_color = Colors.DISABLED_GRAY
+        self.emoji_click_history = []   # track every emoji tap
+        # Hide the keyboard on reset
+        self.keyboard_placeholder.height = 0
+        self.keyboard_placeholder.opacity = 0
+        # Show title when keyboard is hidden
+        self.pixel_frame.show_title()
         print(f"PostTaskScreen({self.task_type}) reset")
+
+    def on_text_focus(self, instance, focused):
+        """Show custom keyboard when text box is tapped; hide when focus is lost."""
+        if focused:
+            # Enlarged keyboard height
+            self.keyboard_placeholder.height = dp(188)
+            self.keyboard_placeholder.opacity = 1
+        else:
+            self.keyboard_placeholder.height = 0
+            self.keyboard_placeholder.opacity = 0
     
     def on_text_change(self, instance, value):
         self.typed_length = len(value)
@@ -196,6 +250,7 @@ class PostTaskScreen(BaseScreen):
             self.char_counter.color = Colors.SUCCESS_GREEN
             self.emoji_title.opacity = 1
             self.emoji_grid.opacity = 1
+            self.emoji_card.opacity = 1
             for btn in self.emoji_buttons:
                 btn.opacity = 0.8
                 btn.disabled = False
@@ -204,6 +259,7 @@ class PostTaskScreen(BaseScreen):
             self.char_counter.color = Colors.WARNING_ORANGE
             self.emoji_title.opacity = 0.1
             self.emoji_grid.opacity = 0.1
+            self.emoji_card.opacity = 0.1
             for btn in self.emoji_buttons:
                 btn.opacity = 0.1
                 btn.disabled = True
@@ -213,6 +269,7 @@ class PostTaskScreen(BaseScreen):
     
     def select_emoji(self, emoji_id):
         self.selected_emoji = emoji_id
+        self.emoji_click_history.append(emoji_id)   # record every tap
         # Reset all to muted
         for btn in self.emoji_buttons:
             btn.opacity = 0.8
@@ -245,6 +302,7 @@ class PostTaskScreen(BaseScreen):
         if self.typed_length < MIN_TYPING_LENGTH or not self.selected_emoji:
             print(" Invalid submission")
             return
+        self.typed_display.focus = False
         
         # Get current timestamp for this task
         task_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -262,7 +320,8 @@ class PostTaskScreen(BaseScreen):
             'task_number': app.user_data.get('current_game', 0),
             'task_type': self.task_type,
             'typed_text': self.typed_display.text.strip(),
-            'selected_emoji': self.selected_emoji,
+            'selected_emoji': self.selected_emoji,           # final choice
+            'emoji_click_history': list(self.emoji_click_history),  # all taps in order
             
             # Additional metadata
             'text_length': self.typed_length,
@@ -277,7 +336,7 @@ class PostTaskScreen(BaseScreen):
         if hasattr(app, 'db'):
             app.db.flush_keystroke_buffer()
             
-        print(f" Task {current_game} saved: {self.selected_emoji}")
+        print(f" level {current_game} saved. emoji selected : {self.selected_emoji}")
         print(f"   Participant: {task_data['participant_id']}")
         print(f"   Session: {task_data['session_id']}")
         print(f"   Task Type: {task_data['task_type']}")
@@ -349,4 +408,4 @@ class PostTaskScreen(BaseScreen):
         # Store keystroke in database
         if hasattr(app, 'db'):
             app.db.insert_keystroke(keystroke)
-
+            
