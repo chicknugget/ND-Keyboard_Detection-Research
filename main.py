@@ -1,3 +1,6 @@
+from kivy.config import Config
+Config.set('graphics', 'resizable', True)
+
 import os
 from datetime import datetime
 
