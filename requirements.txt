@@ -1,0 +1,11 @@
+sqlite3
+typing
+kivy
+random
+platform
+datetime
+turtle
+json
+time
+pathlib
+os
