@@ -5,13 +5,20 @@ Colors, dimensions, fonts, and Android configuration
 
 from kivy.metrics import dp, sp
 from kivy.core.window import Window
+from kivy.core.text import LabelBase
 import platform
-
 import os
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_PATH = os.path.abspath(os.path.join(CURRENT_DIR,".."))
 
+# Register pixel fonts
+try:
+    LabelBase.register(name='PixelTitle', fn_regular=os.path.join(BASE_PATH, 'assets', 'fonts', 'PrStart.ttf'))
+    LabelBase.register(name='PixelBody', fn_regular=os.path.join(BASE_PATH, 'assets', 'fonts', 'NeuePixelSans.ttf'))
+except Exception as e:
+    print(f"Font registration warning: {e}")
+    # Fallback - fonts will use system defaults
 
 class Colors:
     """Standard color palette for the app"""
@@ -50,6 +57,12 @@ class Colors:
     
     # Export/Info Colors
     INFO_BLUE = (0.2, 0.6, 0.9, 1)          
+    
+    # Pixel UI Specific Colors
+    PIXEL_BORDER_DARK = (0.2, 0.2, 0.2, 1)
+    PIXEL_BG_GREEN = (0.4, 0.7, 0.3, 1)
+    PIXEL_BG_BEIGE = (0.95, 0.95, 0.9, 1)
+    CARD_BORDER_REDDISH_BROWN = (0.45, 0.22, 0.14, 1)
 
 
 class Layout:
@@ -60,6 +73,10 @@ class Layout:
     PADDING_LARGE = dp(25)
     PADDING_SMALL = dp(10)
     PADDING_CARD = dp(15)
+    
+    # Pixel UI Extra Padding (for border clearance)
+    PIXEL_CARD_PADDING = dp(6)
+    PIXEL_CONTENT_PADDING = dp(6)
     
     SPACING_STANDARD = dp(10)
     SPACING_LARGE = dp(15)
@@ -80,10 +97,21 @@ class Layout:
     CARD_RADIUS = dp(12)
     CARD_PADDING = dp(15)
     
+    # Pixel UI Card Radius [20, 0, 20, 0] - TL, TR, BR, BL
+    PIXEL_CARD_RADIUS_TL = dp(20)
+    PIXEL_CARD_RADIUS_TR = dp(0)
+    PIXEL_CARD_RADIUS_BR = dp(20)
+    PIXEL_CARD_RADIUS_BL = dp(0)
+    
     # Title/Header Heights
     TITLE_HEIGHT = dp(40)
     SUBTITLE_HEIGHT = dp(20)
     HEADER_HEIGHT = dp(40)
+    
+    # Pixel UI Decoration Sizes
+    PIXEL_STAR_SIZE = dp(30)
+    PIXEL_MUSHROOM_SIZE = dp(100)
+    PIXEL_TITLE_HEIGHT = dp(50)
 
 
 class Typography:
@@ -107,7 +135,39 @@ class Typography:
     
     # Special Text Sizes
     EMOJI_SIZE = sp(30)
+    
+    # Pixel UI Font Sizes
+    PIXEL_TITLE_LARGE = sp(22)
+    PIXEL_TITLE_STANDARD = sp(18)
+    PIXEL_TITLE_SMALL = sp(16)
+    PIXEL_BODY_LARGE = sp(16)
+    PIXEL_BODY_STANDARD = sp(14)
+    PIXEL_BODY_SMALL = sp(12)
 
+
+class PixelUI:
+    """Pixel UI specific configuration"""
+    
+    # Asset paths (relative to BASE_PATH)
+    ASSET_GREEN_MOSAIC = 'assets/ui/green_mosaic.png'
+    ASSET_BEIGE_LIGHT = 'assets/ui/beige_light.png'
+    ASSET_MUSHROOM_HANDSUP = 'assets/ui/mushroom_handsup.png'
+    ASSET_MUSHROOM_HANDSDOWN = 'assets/ui/mushroom_handsdown.png'
+    ASSET_STAR = 'assets/ui/star.png'
+    
+    # Border configuration
+    BORDER_COLOR = (0.2, 0.2, 0.2, 1)
+    BORDER_WIDTH = dp(1.5)
+    BORDER_RADIUS = [dp(20), dp(0), dp(20), dp(0)]  # TL, TR, BR, BL
+    
+    # Font names (registered in config)
+    FONT_TITLE = 'PixelTitle'
+    FONT_BODY = 'PixelBody'
+    
+    # Bounce animation
+    BOUNCE_SCALE = 0.95
+    BOUNCE_DURATION_PRESS = 0.05
+    BOUNCE_DURATION_RELEASE = 0.15
 
 
 # ANDROID CONFIGURATION
@@ -161,7 +221,6 @@ class AppConfig:
         if platform.system() != 'Android':
             Window.size = (AppConfig.MOBILE_WIDTH, AppConfig.MOBILE_HEIGHT)
             print(f" Window resized to {AppConfig.MOBILE_WIDTH}x{AppConfig.MOBILE_HEIGHT} (mobile simulation)")
-
 
 
 # COMMON TEXT/STRINGS
@@ -223,4 +282,12 @@ def init_app_config():
     Sets orientation lock and window size
     """
     AppConfig.lock_orientation(AppConfig.ORIENTATION)
-    # AppConfig.set_window_size_mobile()  # PC testing only - remove for Android build
+    
+    # Prevent Android from resizing the window when the soft keyboard appears.
+    # 'below_target' keeps the window full-size and pans content instead of shrinking.
+    # '' (empty) would make the keyboard overlay with no resizing at all.
+    Window.softinput_mode = 'below_target'
+    
+    # Uncomment the line below to set mobile window size for PC testing
+    # AppConfig.set_window_size_mobile()
+
