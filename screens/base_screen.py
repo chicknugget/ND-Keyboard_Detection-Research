@@ -1,6 +1,5 @@
 # screens/base_screen.py 
 
-
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
@@ -8,9 +7,48 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.app import App
-from kivy.graphics import Color, RoundedRectangle, Rectangle
+from kivy.graphics import Color, RoundedRectangle, Rectangle, Line
+from kivy.animation import Animation
+from kivy.properties import NumericProperty
+from kivy.metrics import dp
 
 from screens.config import Colors, Layout, Typography, AppConfig
+
+
+class BounceButton(Button):
+    """Button with built-in bounce animation on press"""
+    original_size_x = NumericProperty(0)
+    original_size_y = NumericProperty(0)
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # self.register_event_type('on_press_bounce')
+        self.bind(on_press=self._trigger_bounce)
+        self.bind(size=self._store_original_size)
+    
+    def _store_original_size(self, instance, value):
+        if self.original_size_x == 0 and value[0] > 0:
+            self.original_size_x = value[0]
+            self.original_size_y = value[1]
+    
+    def _trigger_bounce(self, instance):
+        """Trigger bounce animation: scale down to 0.95 then back to 1.0"""
+        if self.original_size_x == 0:
+            self.original_size_x = self.width
+            self.original_size_y = self.height
+        
+        # Cancel any existing animation
+        Animation.cancel_all(self)
+        
+        # Create bounce animation: shrink slightly then return to normal
+        # Using out_bounce for a nice elastic feel
+        target_width = self.original_size_x * 0.95
+        target_height = self.original_size_y * 0.95
+        
+        anim = Animation(size=(target_width, target_height), duration=0.05, t='out_quad')
+        anim += Animation(size=(self.original_size_x, self.original_size_y), duration=0.15, t='out_bounce')
+        
+        anim.start(self)
 
 
 class BaseScreen(Screen):
@@ -23,9 +61,6 @@ class BaseScreen(Screen):
             self.bg_rect = Rectangle(size=self.size, pos=self.pos)
         self.bind(size=lambda instance, value: setattr(self.bg_rect, 'size', value))
         self.bind(pos=lambda instance, value: setattr(self.bg_rect, 'pos', value))
-        
-        # Lock orientation when screen is created
-        AppConfig.lock_orientation(AppConfig.ORIENTATION)
         
         print(f"{self.__class__.__name__} initialized")
     
@@ -100,16 +135,32 @@ class BaseScreen(Screen):
         with card.canvas.before:
             Color(*bg_color)
             card.bg_rect = RoundedRectangle(radius=[Layout.CARD_RADIUS])
+
+        with card.canvas.after:
+            Color(*Colors.CARD_BORDER_REDDISH_BROWN)
+            card.border_line = Line(width=dp(1.4))
+
+        def _update_card_canvas(i, _v):
+            i.bg_rect.pos = i.pos
+            i.bg_rect.size = i.size
+            i.border_line.rounded_rectangle = (
+                i.x + dp(0.8),
+                i.y + dp(0.8),
+                max(i.width - dp(1.6), 0),
+                max(i.height - dp(1.6), 0),
+                Layout.CARD_RADIUS
+            )
         
         card.bind(
-            pos=lambda i, v: setattr(card.bg_rect, 'pos', i.pos),
-            size=lambda i, v: setattr(card.bg_rect, 'size', i.size)
+            pos=_update_card_canvas,
+            size=_update_card_canvas
         )
+        _update_card_canvas(card, None)
         
         return card
     
     def create_button(self, text, on_press, button_type='primary', disabled=False):
-        
+        """Create button with bounce animation effect"""
         color_map = {
             'primary': Colors.PRIMARY_BLUE_DARK,
             'success': Colors.SUCCESS_GREEN,
@@ -119,7 +170,8 @@ class BaseScreen(Screen):
         
         bg_color = color_map.get(button_type, Colors.PRIMARY_BLUE_DARK)
         
-        button = Button(
+        # Use BounceButton instead of regular Button for automatic bounce effect
+        button = BounceButton(
             text=text,
             font_size=Typography.BUTTON_STANDARD,
             size_hint_y=None,
@@ -170,7 +222,7 @@ class BaseScreen(Screen):
         if size is None:
             size = (Layout.BUTTON_HEIGHT_STANDARD * 1.5, Layout.BUTTON_HEIGHT_TINY)
         
-        quit_btn = Button(
+        quit_btn = BounceButton(
             text='QUIT',
             size_hint=size_hint,
             size=size,
@@ -194,7 +246,7 @@ class BaseScreen(Screen):
         
         # LEFT COLUMN: Reset button or spacer
         if show_reset:
-            reset_btn = Button(
+            reset_btn = BounceButton(
                 text='RESET',
                 size_hint=(None, 1),
                 width=Layout.BUTTON_HEIGHT_STANDARD * 1.5,
@@ -227,7 +279,7 @@ class BaseScreen(Screen):
         
         # RIGHT COLUMN: Quit button or spacer
         if show_quit:
-            quit_btn = Button(
+            quit_btn = BounceButton(
                 text='QUIT',
                 size_hint=(None, 1),
                 width=Layout.BUTTON_HEIGHT_STANDARD * 1.5,
@@ -263,3 +315,4 @@ class BaseScreen(Screen):
         """Called when leaving screen"""
         print(f"  Leaving {self.__class__.__name__}")
         super(BaseScreen, self).on_leave(*args)
+
