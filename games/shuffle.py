@@ -1,5 +1,4 @@
-from kivy.config import Config
-Config.set('graphics', 'resizable', True)
+
 
 from kivy.app import App
 from kivy.uix.button import ButtonBehavior, Button
