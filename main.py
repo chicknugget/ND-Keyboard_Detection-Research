@@ -88,21 +88,10 @@ class EmotionStudyApp(App):
         else:
             sm.current = 'instructions'  # Returning: skip to instructions
             print(" Returning user - starting from instructions screen")
-        
-        root = FloatLayout()
-        root.add_widget(sm)
-        self.debug_btn = Button(
-            text='Debug DB',
-            size_hint=(None, None),
-            size=(100, 40),
-            pos_hint={'right': 1, 'top': 0.15},
-            background_color=(1, 0, 0, 0.8),
-            font_size=10,
-        )
-        self.debug_btn.bind(on_press=self.export_debug)
-        root.add_widget(self.debug_btn)
+            
+        sm.add_widget(CompletionScreen(name='completion')
 
-        return root
+        return sm
     
     def export_debug(self, instance):
         try:
