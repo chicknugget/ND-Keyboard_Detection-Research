@@ -105,7 +105,7 @@ class PostTaskScreen(BaseScreen):
             text=f'0 / {MIN_TYPING_LENGTH} characters (minimum)',
             font_name=PixelUI.FONT_BODY,
             font_size=Typography.BODY_TINY,
-            color=Colors.WARNING_ORANGE,
+            color=Colors.DISABLED_GRAY,
             size_hint_y=None,
             height=dp(16),
             halign='right'
@@ -118,7 +118,7 @@ class PostTaskScreen(BaseScreen):
             text='Select your feeling:',
             font_name=PixelUI.FONT_BODY,
             font_size=Typography.PIXEL_BODY_SMALL,
-            color=Colors.TEXT_GRAY,
+            color=Colors.WARNING_ORANGE ,
             size_hint_y=None,
             height=dp(20),
             opacity=0
@@ -158,7 +158,7 @@ class PostTaskScreen(BaseScreen):
         self.emoji_card.add_widget(self.emoji_grid)
         main_layout.add_widget(self.emoji_card)
         
-        # ===== KEYBOARD PLACEHOLDER (Enlarged) =====
+        #  KEYBOARD PLACEHOLDER
         self.keyboard_placeholder = self.create_card(
             size_hint=(1, None),
             height=0,  # Hidden initially
@@ -214,7 +214,7 @@ class PostTaskScreen(BaseScreen):
         self.typed_length = 0
         self.selected_emoji = ''
         self.char_counter.text = f'0 / {MIN_TYPING_LENGTH} characters (minimum)'
-        self.char_counter.color = Colors.WARNING_ORANGE
+        self.char_counter.color = Colors.TEXT_GRAY
         self.emoji_title.opacity = 0
         self.emoji_grid.opacity = 0
         self.emoji_card.opacity = 0
