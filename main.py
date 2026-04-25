@@ -89,7 +89,7 @@ class EmotionStudyApp(App):
             sm.current = 'instructions'  # Returning: skip to instructions
             print(" Returning user - starting from instructions screen")
             
-        sm.add_widget(CompletionScreen(name='completion')
+        sm.add_widget(CompletionScreen(name='completion'))
 
         return sm
     
