@@ -69,7 +69,7 @@ class CustomKeyboard(BoxLayout):
         
         # Add SHIFT button
         shift_key = KeyButton(
-            key_char="↑",
+            key_char="SHIFT",
             key_id="key_shift",
             on_key_press=self.handle_keystroke
         )
@@ -86,7 +86,7 @@ class CustomKeyboard(BoxLayout):
         
         # Add BACKSPACE button
         backspace_key = KeyButton(
-            key_char="←",
+            key_char="BCK",
             key_id="key_backspace",
             on_key_press=self.handle_keystroke
         )
