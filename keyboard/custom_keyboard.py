@@ -12,7 +12,7 @@ class CustomKeyboard(BoxLayout):
         self.session_id = None
         self.task_type = None
         self.previous_keystroke = None
-        self.shift_active = False
+        self.shift_active = True
         self.on_keystroke_callback = None
 
         self.build_keyboard()
@@ -102,6 +102,18 @@ class CustomKeyboard(BoxLayout):
         if self.previous_keystroke:
             keystroke.inter_key_interval_ms = (keystroke.press_time_ms - self.previous_keystroke.release_time_ms)
             keystroke.flight_time_ms = keystroke.press_time_ms - self.previous_keystroke.press_time_ms
+
+        if keystroke.key_char == 'SHIFT':
+            self.shift_active = not self.shift_active
+            return 
+        if self.shift_active:
+            keystroke.key_char = keystroke.key_char.upper()
+        else:
+            keystroke.key_char = keystroke.key_char.lower()
+        if self.shift_active and keystroke.key_char not in [' ', ',', '.']:
+            self.shift_active = False
+        if keystroke.key_char == '.':
+            self.shift_active = True
 
         self.previous_keystroke = keystroke
 

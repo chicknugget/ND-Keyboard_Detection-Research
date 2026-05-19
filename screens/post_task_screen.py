@@ -137,7 +137,7 @@ class PostTaskScreen(BaseScreen):
         
         for emoji in Strings.FIXED_EMOJIS:
             btn = EmojiImageButton(
-                source= os.path.join(BASE_PATH,emoji['source']),
+                source=emoji['source'],
                 size_hint=(None, None),
                 size=(dp(45), dp(45)),
                 opacity=0.5
@@ -419,8 +419,7 @@ class PostTaskScreen(BaseScreen):
             self.backspace_count += 1
 
         elif keystroke.key_id == 'key_done':
-            # Optional: trigger submit
-            return
+            self.typed_display.focus = False
 
         else:
             self.add_char(keystroke.key_char)
