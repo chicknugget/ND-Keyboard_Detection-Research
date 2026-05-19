@@ -159,6 +159,9 @@ class DemographicsScreen(BaseScreen):
             'age_range': self.age_spinner.text,
             'gender': self.gender_spinner.text
         }
+
+        if hasattr(app, 'db'):
+            app.db.update_session(app.user_data.get('session_id', ''), age_range=self.age_spinner.text, gender=self.gender_spinner.text)
         
         print(f"Demographics SAVED: {app.user_data}")
         self.manager.current = 'instructions'

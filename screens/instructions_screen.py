@@ -115,7 +115,7 @@ class InstructionsScreen(BaseScreen):
         app.user_data['current_game'] = 1  # Start with game 1
         
         # Record session start time
-        session_start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        session_start_time = int(__import__('time').time() * 1000)
         app.user_data['session_start_time'] = session_start_time
         
         # Increment session count in persistent storage
@@ -125,7 +125,7 @@ class InstructionsScreen(BaseScreen):
             session_id=session_id,
             participant_id=app.user_data.get('participant_id', 'Not set'),
             start_time=session_start_time,
-            end_time=session_start_time,   
+            end_time=None,   
             status='in_progress'  
         )
 

@@ -184,6 +184,7 @@ class GameContainerScreen(BaseScreen):
             app.db.insert_game_result(game_result)
         if self.game_number == 7:
             self.manager.current = 'completion'
+            app.db.update_session(app.user_data.get('session_id', ''), status='completed', end_time=end_time)
             print(f"  Navigating to completion")
 
         else :
@@ -210,6 +211,11 @@ class GameContainerScreen(BaseScreen):
         
         print(f" Quit pressed - navigating to completion screen")
         print(f" Tasks completed: {tasks_completed} out of 7")
+
+        if hasattr(app, 'db'):
+            app.db.update_session(
+                app.user_data.get('session_id', ''), status='quit', 
+                                  end_time=int(__import__('time').time() * 1000))
         
         # Navigate to completion screen (will show 0 tasks if no games completed)
         self.manager.current = 'completion'

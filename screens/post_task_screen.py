@@ -333,7 +333,7 @@ class PostTaskScreen(BaseScreen):
         
         # Append to tasks list
         app.user_data.setdefault('tasks', []).append(task_data)
-        typing_duration = int(import('time').time() * 1000) - getattr(self, 'typing_start_time', 0)
+        typing_duration = int(__import__('time').time() * 1000) - getattr(self, 'typing_start_time', 0)
         emotion_label = EmotionLabel(
             session_id=app.user_data.get('session_id', ''),
             task_type=self.task_type,
@@ -344,7 +344,7 @@ class PostTaskScreen(BaseScreen):
             typing_duration_ms=typing_duration,
             total_keystrokes=self.keystroke_count,
             backspace_count=self.backspace_count,
-            submission_time=int(import('time').time() * 1000)
+            submission_time=int(__import__('time').time() * 1000)
         )
         
         if hasattr(app, 'db'): 
