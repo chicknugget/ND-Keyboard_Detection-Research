@@ -8,12 +8,9 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.resources import resource_add_path 
 from kivy.properties import NumericProperty
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.button import Button
 import shutil
 
 from data.database import DatabaseManager
-from data.models import Session
 
 from screens.consent_screen import ConsentScreen
 from screens.demographics_screen import DemographicsScreen
@@ -54,6 +51,7 @@ class EmotionStudyApp(App):
         sm.add_widget(ConsentScreen(name='consent'))
         sm.add_widget(DemographicsScreen(name='demographics'))
         sm.add_widget(InstructionsScreen(name='instructions'))
+        sm.add_widget(CompletionScreen(name='completion'))
         
         # GAME CYCLE
         
@@ -88,7 +86,6 @@ class EmotionStudyApp(App):
             sm.current = 'instructions'  # Returning: skip to instructions
             print(" Returning user - starting from instructions screen")
             
-        sm.add_widget(CompletionScreen(name='completion'))
 
         return sm
     

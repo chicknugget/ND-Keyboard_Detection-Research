@@ -238,7 +238,7 @@ class PostTaskScreen(BaseScreen):
         if focused:
             # Enlarged keyboard height
             self.keyboard_placeholder.height = dp(188)
-            self.typing_start_time = int(__import__('__time__').time() * 1000)
+            self.typing_start_time = int(__import__('time').time() * 1000)
             self.keyboard_placeholder.opacity = 1
         else:
             self.keyboard_placeholder.height = 0
@@ -367,7 +367,7 @@ class PostTaskScreen(BaseScreen):
 
         elif current_game == 7:
             # Set session end time on final task
-            app.user_data['session_end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            app.user_data['session_end_time'] = int(__import__('time').time() * 1000)
             self.manager.current = 'completion'
 
         else:
@@ -420,11 +420,12 @@ class PostTaskScreen(BaseScreen):
 
         elif keystroke.key_id == 'key_done':
             self.typed_display.focus = False
-
+            return
         else:
             self.add_char(keystroke.key_char)
 
         self.keystroke_count += 1
+        keystroke.position_in_sentence = len(self.typed_display.text)
         # Store keystroke in database
         if hasattr(app, 'db'):
             app.db.insert_keystroke(keystroke)

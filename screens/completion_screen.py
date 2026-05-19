@@ -9,7 +9,7 @@ from kivy.uix.widget import Widget
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI, BASE_PATH
 from screens.pixel_ui_wrapper import PixelFrame
-from screens.utils import generate_session_id, load_participant_data
+from screens.utils import load_participant_data
 import os
 
 
@@ -172,8 +172,7 @@ class CompletionScreen(BaseScreen):
 
         user_data = app.user_data if hasattr(app,'user_data') else {}
 
-        completed_games = user_data.get('completed_games',set())
-        games_completed = len(completed_games)
+        games_completed = len(app.user_data.get('tasks', []))
         
         tasks = app.user_data.get('tasks', [])
         total_keystrokes = sum(len(t.get('typed_text', '')) for t in tasks)
@@ -186,19 +185,14 @@ class CompletionScreen(BaseScreen):
         # Calculate session time if available
         session_start = app.user_data.get('session_start_time', '')
         session_end = app.user_data.get('session_end_time', '')
+
         if session_start and session_end:
-            from datetime import datetime
-            try:
-                start = datetime.strptime(session_start, "%Y-%m-%d %H:%M:%S")
-                end = datetime.strptime(session_end, "%Y-%m-%d %H:%M:%S")
-                duration = end - start
-                minutes = int(duration.total_seconds() / 60)
-                session_time = f"{minutes} minutes"
-            except:
-                session_time = "5 minutes"
+            duration_ms = session_end - session_start
+            minutes = int(duration_ms / 60000)
+            session_time = f"{minutes} minutes"
         else:
             session_time = "5 minutes"
-        
+                
         # UI text
         if games_completed == 7:
             self.complete_msg.text = 'CONGRATULATIONS! You completed all 7 levels successfully'

@@ -2,7 +2,6 @@
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.app import App
-from datetime import datetime
 
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI
@@ -10,7 +9,6 @@ from screens.pixel_ui_wrapper import PixelFrame
 from screens.utils import generate_session_id, reset_app_data, increment_session_count
 
 from data.models import Session
-import time
 
 class InstructionsScreen(BaseScreen):
     def __init__(self, **kwargs):
@@ -126,7 +124,11 @@ class InstructionsScreen(BaseScreen):
             participant_id=app.user_data.get('participant_id', 'Not set'),
             start_time=session_start_time,
             end_time=None,   
-            status='in_progress'  
+            status='in_progress',
+            screen_width=App.get_running_app().root.width,
+            screen_height=App.get_running_app().root.height,
+            age_range=app.user_data.get('demographics', {}).get('age_range', ''),
+            gender=app.user_data.get('demographics', {}).get('gender', ''),
         )
 
         app.db.insert_session(session)

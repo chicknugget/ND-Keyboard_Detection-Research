@@ -136,7 +136,7 @@ class CustomKeyboard(BoxLayout):
     def reset(self):
         """Reset keyboard state for new sentence"""
         self.previous_keystroke = None
-        self.shift_active = False
+        self.shift_active = True
     
     def set_on_keystroke_callback(self, callback):
         """Set callback function for keystroke events"""

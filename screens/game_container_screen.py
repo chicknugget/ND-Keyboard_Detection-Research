@@ -183,8 +183,8 @@ class GameContainerScreen(BaseScreen):
         if hasattr(app, 'db'):
             app.db.insert_game_result(game_result)
         if self.game_number == 7:
-            self.manager.current = 'completion'
             app.db.update_session(app.user_data.get('session_id', ''), status='completed', end_time=end_time)
+            self.manager.current = 'completion'
             print(f"  Navigating to completion")
 
         else :
@@ -205,7 +205,7 @@ class GameContainerScreen(BaseScreen):
         
         # Record session end time (only if session has started)
         if 'session_start_time' in app.user_data:
-            session_end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            session_end_time = int(__import__('time').time() * 1000)
             app.user_data['session_end_time'] = session_end_time
             print(f" Session end time: {session_end_time}")
         
