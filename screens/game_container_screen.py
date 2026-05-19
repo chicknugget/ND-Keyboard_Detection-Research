@@ -13,11 +13,12 @@ from kivy.graphics import Color, Rectangle, RoundedRectangle
 from games.shuffle import ShufflingGame
 
 from screens.base_screen import BaseScreen
+from data.models import GameResult
 from screens.config import Colors, Layout, Typography
 
 
 GAME_SETTINGS = {
-    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 5, 'bg_music':'relaxation'},
+    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 1, 'bg_music':'relaxation'},
     'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'happy'},
     'boredom':    {'rigged': None, 'speed': 0.5, 'no_of_glasses': 1, 'points_show': True, 'total_rounds': 5, 'bg_music':'boredom'},
     'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 5, 'bg_music':'sad'},
@@ -164,7 +165,23 @@ class GameContainerScreen(BaseScreen):
     
     def go_to_post_task(self):
         """Navigate to appropriate post-task screen"""
-        
+
+        end_time = int(__import__('time').time() * 1000)
+        start_time = int(self.start_time.timestamp() * 1000)
+        app = App.get_running_app()
+        game_result = GameResult(
+            session_id=app.user_data.get('session_id', ''),
+            task_type=self.emotion,
+            final_score=app.total_points,
+            outcome='completed',
+            start_time=start_time,
+            end_time=end_time,
+            duration_ms=end_time - start_time,
+            attempts=1
+        )
+
+        if hasattr(app, 'db'):
+            app.db.insert_game_result(game_result)
         if self.game_number == 7:
             self.manager.current = 'completion'
             print(f"  Navigating to completion")

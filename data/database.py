@@ -13,7 +13,7 @@ class DatabaseManager:
         self.connection = sqlite3.connect(db_path) #creates/opens a database connection  and establishes a connection to the database
         self.cursor = self.connection.cursor() #creates a cursor object for the database: basically a pen to write to the database
         self.keystroke_buffer = [] #temporary storage to store keystrokes before batch saving
-        self.buffer_size = 20 #when buffer size reaches 20 --> save it all together
+        self.buffer_size = 10 #when buffer size reaches 10 --> save it all together
 
         self.create_tables()
 

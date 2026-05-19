@@ -77,8 +77,7 @@ class EmotionStudyApp(App):
             if game_num in Strings.DEBRIEFING_AFTER_GAMES:
                 sm.add_widget(DebriefingScreen(name=f'debriefing_{emotion}'))
         
-    # completionscreen
-        sm.add_widget(CompletionScreen(name='completion'))
+    
         
         # ===== STARTING SCREEN =====
         # Check if first time or returning user
@@ -120,8 +119,15 @@ class EmotionStudyApp(App):
         self.db = DatabaseManager()
         print("Database initialized!")
 
+    def on_pause(self):
+        # Save everything when the app loses focus
+        if hasattr(self, 'db'):
+            self.db.flush_keystroke_buffer()
+        return True # Returns True so the app can resume later
+
     def on_stop(self):
         if hasattr(self, 'db'):
+            self.db.flush_keystroke_buffer()
             self.db.close()
             print("Database closed!")
 

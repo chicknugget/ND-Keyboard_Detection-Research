@@ -9,3 +9,4 @@ keyboard/__pycache__
 .buildozer/
 emotion_study.db
 screens/__pycache__
+games/__pycache__

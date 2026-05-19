@@ -3,7 +3,7 @@
 import os
 
 from keyboard.custom_keyboard import CustomKeyboard
-from data.models import KeystrokeEvent
+from data.models import KeystrokeEvent, EmotionLabel
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
@@ -224,6 +224,8 @@ class PostTaskScreen(BaseScreen):
         self.submit_btn.disabled = True
         self.submit_btn.background_color = Colors.DISABLED_GRAY
         self.emoji_click_history = []   # track every emoji tap
+        self.keystroke_count = 0
+        self.backspace_count = 0
         # Hide the keyboard on reset
         self.keyboard_placeholder.height = 0
         self.keyboard_placeholder.opacity = 0
@@ -236,6 +238,7 @@ class PostTaskScreen(BaseScreen):
         if focused:
             # Enlarged keyboard height
             self.keyboard_placeholder.height = dp(188)
+            self.typing_start_time = int(__import__('__time__').time() * 1000)
             self.keyboard_placeholder.opacity = 1
         else:
             self.keyboard_placeholder.height = 0
@@ -330,7 +333,23 @@ class PostTaskScreen(BaseScreen):
         
         # Append to tasks list
         app.user_data.setdefault('tasks', []).append(task_data)
+        typing_duration = int(import('time').time() * 1000) - getattr(self, 'typing_start_time', 0)
+        emotion_label = EmotionLabel(
+            session_id=app.user_data.get('session_id', ''),
+            task_type=self.task_type,
+            selected_emoji=self.selected_emoji,
+            typed_sentence=self.typed_display.text.strip(),
+            expected_sentence='',
+            is_exact_match=False,
+            typing_duration_ms=typing_duration,
+            total_keystrokes=self.keystroke_count,
+            backspace_count=self.backspace_count,
+            submission_time=int(import('time').time() * 1000)
+        )
         
+        if hasattr(app, 'db'): 
+            app.db.insert_emotion_label(emotion_label)
+
         current_game = app.user_data.get('current_game', 1)
 
         if hasattr(app, 'db'):
@@ -397,6 +416,7 @@ class PostTaskScreen(BaseScreen):
         if keystroke.key_id == 'key_backspace':
             self.backspace(None)
             keystroke.is_backspace = True
+            self.backspace_count += 1
 
         elif keystroke.key_id == 'key_done':
             # Optional: trigger submit
@@ -405,6 +425,7 @@ class PostTaskScreen(BaseScreen):
         else:
             self.add_char(keystroke.key_char)
 
+        self.keystroke_count += 1
         # Store keystroke in database
         if hasattr(app, 'db'):
             app.db.insert_keystroke(keystroke)
