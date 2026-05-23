@@ -417,10 +417,6 @@ class PostTaskScreen(BaseScreen):
             self.backspace(None)
             keystroke.is_backspace = True
             self.backspace_count += 1
-
-        elif keystroke.key_id == 'key_done':
-            self.typed_display.focus = False
-            return
         else:
             self.add_char(keystroke.key_char)
 

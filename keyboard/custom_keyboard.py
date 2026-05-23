@@ -31,17 +31,15 @@ class CustomKeyboard(BoxLayout):
         row3 = self.create_row3_with_special_keys(row3_keys)
 
         #comma, spacebar, fullstop
-        row4 = GridLayout(cols=4, size_hint_y=0.25, spacing=2)
+        row4 = GridLayout(cols=3, size_hint_y=0.25, spacing=2)
         
         comma_key = KeyButton(key_char=",", key_id="key_comma", on_key_press=self.handle_keystroke)
         space_key = KeyButton(key_char=" ", key_id="key_space", on_key_press=self.handle_keystroke, text="SPACE")
         period_key = KeyButton(key_char=".", key_id="key_period", on_key_press=self.handle_keystroke)
-        done_key = KeyButton(key_char="✓", key_id="key_done", on_key_press=self.handle_keystroke, text="DONE")
 
         row4.add_widget(comma_key)
         row4.add_widget(space_key)
         row4.add_widget(period_key)
-        row4.add_widget(done_key)
         
         #adding all 4th row special key to keyboard
         self.add_widget(row1)
