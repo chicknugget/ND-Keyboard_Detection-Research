@@ -1,7 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = Emotion Study App
+title = Glass Shuffles
 
 # (str) Package name
 package.name = shufflinggame
@@ -47,7 +47,7 @@ requirements = python3,kivy,sqlite3
 #presplash.filename = %(source.dir)s/data/presplash.png
 
 # (str) Icon of the application
-#icon.filename = /content/drive/MyDrive/ND-Keyboard_Detection-Research-game-flow/assets/cup_ball/cup.png
+icon.filename = /content/drive/MyDrive/ND-Keyboard_Detection-Research/assets/cup_ball/cup.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse

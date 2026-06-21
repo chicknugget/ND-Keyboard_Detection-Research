@@ -18,13 +18,19 @@ from screens.config import Colors, Layout, Typography
 
 
 GAME_SETTINGS = {
-    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 1, 'bg_music':'relaxation'},
-    'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'happy'},
-    'boredom':    {'rigged': None, 'speed': 0.5, 'no_of_glasses': 1, 'points_show': True, 'total_rounds': 5, 'bg_music':'boredom'},
-    'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 5, 'bg_music':'sad'},
-    'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 5, 'bg_music':'frustrated'},
-    'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 5, 'bg_music':'stress'},
-    'relaxation_final': {'rigged': "rig_win", 'speed': 0.65, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'relaxation'}
+    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 5, 'bg_music':'relaxation', 'bg_colour': (255/255, 250/255, 205/255, 1)},
+
+    'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'happy', 'bg_colour': (212/255, 177/255, 66/255, 1)},
+
+    'boredom':    {'rigged': None, 'speed': 0.7, 'no_of_glasses': 2, 'points_show': True, 'total_rounds': 3, 'bg_music':'boredom', 'bg_colour': (222/255, 217/255, 217/255, 1)},
+
+    'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 5, 'bg_music':'sad', 'bg_colour': (64/255, 64/255, 64/255, 1)},
+
+    'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 5, 'bg_music':'frustrated', 'bg_colour': (242/255, 133/255, 0/255, 1)},
+
+    'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 5, 'bg_music':'stress', 'bg_colour': (255/255, 36/255, 0/255, 1)},
+
+    'relaxation_final': {'rigged': "rig_win", 'speed': 0.65, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'relaxation', 'bg_colour': (97/255, 112/255, 44/255, 1)}
 }
 
 
@@ -36,7 +42,7 @@ class GameContainerScreen(BaseScreen):
         self.emotion = emotion
 
         with self.canvas.before:
-            Color(97/255, 112/255, 44/255, 1)
+            self.bg_color_instruction = Color(97/255, 112/255, 44/255, 1)
             self.bg_rect = Rectangle(pos=self.pos, size=self.size)
         self.bind(pos=self.update_bg, size=self.update_bg)
         
@@ -144,6 +150,9 @@ class GameContainerScreen(BaseScreen):
         self.game_placeholder.clear_widgets()
         
         config = GAME_SETTINGS.get(self.emotion, GAME_SETTINGS['relaxation_final'])
+        bg_colour = config.get('bg_colour', (97/255, 112/255, 44/255, 1))
+
+        self.bg_color_instruction.rgba = bg_colour
         
         your_game = ShufflingGame(
             level=self.game_number,
@@ -153,6 +162,7 @@ class GameContainerScreen(BaseScreen):
             points_show=config['points_show'],
             total_rounds=config['total_rounds'],
             bg_music=config.get('bg_music', 'relaxation'),
+            bg_colour=config.get('bg_colour'),
             on_game_complete=self.go_to_post_task
         )
         

@@ -1,5 +1,3 @@
-
-
 from kivy.app import App
 from kivy.uix.button import ButtonBehavior, Button
 from kivy.uix.image import Image
@@ -26,7 +24,7 @@ class ShufflingGame(FloatLayout):
     speed = NumericProperty(0.5)
     
 
-    def __init__(self, level = 0, rigged=None, speed=0.5, no_of_glasses=3, points_show=True, total_rounds=10, on_game_complete=None, bg_music=None, **kwargs):
+    def __init__(self, level = 0, rigged=None, speed=0.5, no_of_glasses=3, points_show=True, total_rounds=10, on_game_complete=None, bg_music=None, bg_colour=None, **kwargs):
         super(ShufflingGame, self).__init__(**kwargs)
 
         self.on_game_complete = on_game_complete
@@ -36,8 +34,9 @@ class ShufflingGame(FloatLayout):
         self.no_of_glasses = no_of_glasses
         self.total_rounds = total_rounds
         self.points_show = points_show
-        self.total_shuffles = 3
+        self.total_shuffles = 1 if self.level == 3 else 3
         self.current_round = 1
+        self.bg_colour = bg_colour if bg_colour else (97/255, 112/255, 44/255, 1)
         self.success_ding = SoundLoader.load(os.path.join(BASE_PATH, 'assets', 'music', 'dings', 'success_ding.wav'))
         self.success_ding.volume = 0.5
         self.lose_ding = SoundLoader.load(os.path.join(BASE_PATH, 'assets', 'music', 'dings', 'lose_ding.wav'))
@@ -50,7 +49,7 @@ class ShufflingGame(FloatLayout):
         self.app = App.get_running_app()
 
         with self.canvas.before:
-            Color(97/255, 112/255, 44/255, 1)   
+            Color(*self.bg_colour)
             self.rect = Rectangle(pos=self.pos, size=self.size)
         self.bind(pos=self.update_rect, size=self.update_rect)
 
