@@ -9,23 +9,18 @@ from kivy.graphics import Color, RoundedRectangle
 
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI
-from screens.pixel_ui_wrapper import PixelFrame
-
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
+from kivy.uix.button import Button
 
 class ConsentScreen(BaseScreen):
-    all_checkboxes = ListProperty()
+    # all_checkboxes = ListProperty()
+
 
     def __init__(self, **kwargs):
-        super(ConsentScreen, self).__init__(**kwargs)
+        super(ConsentScreen, self).__init__(enable_wrapper=True, title='INFORMED CONSENT', show_stars=True, show_header=True, show_quit=False, show_reset=False, **kwargs)
         
-        # Create pixel frame wrapper
-        self.pixel_frame = PixelFrame(
-            title='INFORMED CONSENT',
-            show_stars=True,
-            show_header=True,
-            show_quit=False,
-            show_reset=False
-        )
+       
         
         # Original main layout (preserved exactly)
         main_layout = BoxLayout(
@@ -36,25 +31,33 @@ class ConsentScreen(BaseScreen):
         
         # Scrollable info section
         info_text = """
-Welcome to our emotion recognition study through typing patterns.
+Welcome!
 
-WHAT WE'RE STUDYING:
-• How emotions affect keystroke dynamics  
-• Anonymous data collection only
-• Academic research (no commercial use)
-• Takes 5-10 minutes total
+Thank you for taking the time to participate in our study on emotion
+recognition through typing patterns. Your contribution will help us better
+understand how emotions may influence the way people type.
 
-YOUR DATA:
-• Keystroke timing + patterns only
-• No personal information collected
-• Stored securely, used for publication
-• You can withdraw anytime
+ABOUT THIS STUDY:
+• We are exploring how emotions affect typing patterns (keystroke dynamics)
+• This is an academic research project
+• Participation takes approximately 5–10 minutes
 
-By checking all boxes below, you confirm:
-• You are 18+ years old
-• You understand the study purpose
-• You voluntarily agree to participate
-        """
+YOUR PRIVACY:
+• We collect only typing timing and keystroke patterns
+• No personal information is collected
+• Your data will be stored securely and used only for research purposes
+
+WHAT TO EXPECT:
+• Some tasks may be slightly challenging and could cause mild, temporary frustration
+• Your participation is completely voluntary
+• You may withdraw from the study at any time before submitting your data
+
+By checking all of the boxes below, you confirm that:
+• You are 18+ years of age or older
+• You have read and understood the study information
+• You understand what participation involves
+• You voluntarily agree to take part in this study
+"""
         
         info_layout = BoxLayout(
             orientation='vertical',
@@ -64,52 +67,51 @@ By checking all boxes below, you confirm:
         )
         info_layout.bind(minimum_height=info_layout.setter('height'))
         
-        from kivy.uix.label import Label
         info_label = Label(
-            text=info_text,
-            font_name=PixelUI.FONT_BODY,
-            font_size=Typography.PIXEL_BODY_SMALL,
-            color=Colors.TEXT_BLACK,  
-            halign='left',
-            valign='top',
-            size_hint_y=None,
-            markup=True
+        text=info_text,
+        font_name=PixelUI.FONT_BODY,
+        # Remove font_size from here
+        color=Colors.TEXT_BLACK,
+        halign='left',
+        valign='top',
+        size_hint_y=None,
+        markup=True
         )
-        
+        self.bind(height=lambda inst, val: setattr(info_label, 'font_size', val * 0.02))
+            
 
-        def set_text_size(instance, value):
-            instance.text_size = (value - Layout.PADDING_CARD * 2, None)
+        # def set_text_size(instance, value):
+        #     # instance.text_size = (value - Layout.PADDING_CARD * 2, None)
+        #     instance.text_size = (value , None)
         
-        info_label.bind(
-            width=set_text_size,
-            texture_size=lambda instance, value: setattr(instance, 'height', value[1])
-        )
+        info_label.bind(width=lambda inst, val: setattr(inst, 'text_size', (val, None)))
+        info_label.bind(texture_size=lambda inst, val: setattr(inst, 'height', val[1]))
         info_layout.add_widget(info_label)
         
         # scrollable card for info
-        scroll_card = self.create_scrollable_content(info_layout)
+        scroll_card = self.create_scrollable_content(info_layout,size_hint=(1,0.45))
         main_layout.add_widget(scroll_card)
 
         # Checkboxes 
         checkboxes_layout = BoxLayout(
             orientation='vertical',
-            size_hint_y=None,
+            size_hint_y=0.25,
             spacing=Layout.SPACING_SMALL + Layout.SPACING_TINY
         )
-        checkboxes_layout.bind(minimum_height=checkboxes_layout.setter('height'))
+        # checkboxes_layout.bind(minimum_height=checkboxes_layout.setter('height'))
         
         checkbox_texts = [
-            'I have read and understand the study information',
-            'I understand this study may induce frustration',
-            'I voluntarily agree to participate'
-        ]
+    'I have read and understood the study information and I\'m 18+',
+    'I understand that some tasks may cause mild, temporary frustration',
+    'I voluntarily agree to participate in this study'
+]
         
         self.all_checkboxes = []
         for text in checkbox_texts:
             cb_layout = BoxLayout(
                 orientation='horizontal',
-                size_hint_y=None,
-                height=Layout.BUTTON_HEIGHT_TINY,
+                size_hint_y=1/3,
+                # height=Layout.BUTTON_HEIGHT_TINY,
                 spacing=Layout.SPACING_SMALL,
                 padding=[dp(6), dp(2), dp(6), dp(2)]
 
@@ -123,18 +125,18 @@ By checking all boxes below, you confirm:
             )
             
             checkbox = CheckBox(
-                size_hint=(None, None),
+                size_hint=(None, 0.8),
                 size=(Layout.CHECKBOX_SIZE + 6, Layout.CHECKBOX_SIZE + 6),
                 active=False,
                 color=Colors.PRIMARY_BLUE_DARK  
             )
+            checkbox.bind(height=lambda inst, val: setattr(inst, 'width', val))
             
             # Label(Text shown) for checkbox
-            from kivy.uix.label import Label
             cb_label = Label(
                 text=text,
                 font_name=PixelUI.FONT_BODY,
-                font_size=Typography.PIXEL_BODY_SMALL,
+                # font_size=Typography.PIXEL_BODY_SMALL,
                 color=Colors.TEXT_BLACK,  
                 halign='left',
                 valign='middle',
@@ -142,11 +144,9 @@ By checking all boxes below, you confirm:
             )
             
             cb_label.bind(
-                width=lambda instance, value: setattr(instance, 'text_size', (value, None)),
-                texture_size=lambda instance, value: setattr(cb_layout, 'height', max(
-                    Layout.BUTTON_HEIGHT_TINY, value[1] + Layout.SPACING_SMALL
-                ))
+                size=cb_label.setter('text_size')  # Wrap text to widget width
             )
+            cb_label.bind(height=lambda inst, val: setattr(inst, 'font_size', val * 0.42))
 
             cb_layout.add_widget(checkbox)
             cb_layout.add_widget(cb_label)
@@ -160,8 +160,8 @@ By checking all boxes below, you confirm:
         
         buttons_layout = BoxLayout(
             orientation='horizontal',
-            size_hint_y=None,
-            height=Layout.BUTTON_HEIGHT_LARGE,
+            size_hint_y=0.09,
+            # height=Layout.BUTTON_HEIGHT_LARGE,
             spacing=Layout.SPACING_LARGE
         )
         
@@ -172,6 +172,7 @@ By checking all boxes below, you confirm:
             button_type='danger'
         )
         decline_btn.size_hint_x = 0.48
+        decline_btn.size_hint_y=1 #fill parent height
         buttons_layout.add_widget(decline_btn)
         
         # Consent button (initially disabled)
@@ -182,14 +183,15 @@ By checking all boxes below, you confirm:
             disabled=True
         )
         self.consent_btn.size_hint_x = 0.48
+        self.consent_btn.size_hint_y=1 #fill parent height
         self.consent_btn.background_color = Colors.DISABLED_GRAY  
         buttons_layout.add_widget(self.consent_btn)
 
         main_layout.add_widget(buttons_layout)
         
-        # Set content to pixel frame
-        self.pixel_frame.set_content(main_layout)
-        self.add_widget(self.pixel_frame)
+        # Set content to main layout
+        self.set_content(main_layout)
+
 
     def update_consent_button(self, instance, value):
         """Enable CONSENT button only when ALL 3 checkboxes checked"""
@@ -201,13 +203,46 @@ By checking all boxes below, you confirm:
         else:
             self.consent_btn.background_color = Colors.DISABLED_GRAY
 
+    #to reset checkboxes
+    def reset_consent(self):
+        """Reset all checkboxes to unchecked and disable consent button"""
+        for cb in self.all_checkboxes:
+            cb.active = False
+        self.consent_btn.disabled = True
+        self.consent_btn.background_color = Colors.DISABLED_GRAY
+
+    def on_pre_enter(self, *args):
+        """Reset checkboxes every time screen is entered"""
+        super().on_pre_enter(*args)
+        self.reset_consent()
+
+
+
     def on_consent(self, instance):
         """Go to next screen (Demographics)"""
         print("CONSENT GIVEN - Going to Demographics")
         self.manager.current = 'demographics'
 
+    
+    # def on_decline(self, instance):
+    #     """Close app when declined"""
+    #     print("Study declined - Closing app")
+    #     App.get_running_app().stop()
+
     def on_decline(self, instance):
-        """Close app when declined"""
-        print("Study declined - Closing app")
-        App.get_running_app().stop()
+    
+        content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(15))
+        content.add_widget(Label(
+            text='Are you sure you want to decline?\nThe app will close.',
+            color=Colors.TEXT_BLACK, halign='center', valign='middle'
+        ))
+        
+        btn_row = BoxLayout(spacing=dp(10), size_hint_y=0.4)
+        popup = Popup(title='Confirm Decline', content=content, size_hint=(0.8, 0.35), auto_dismiss=False)
+        
+        btn_row.add_widget(Button(text='Yes, Decline', on_press=lambda *_: App.get_running_app().stop()))
+        btn_row.add_widget(Button(text='Go Back', on_press=lambda *_: popup.dismiss()))
+        content.add_widget(btn_row)
+        
+        popup.open()
 

@@ -220,6 +220,14 @@ class AppConfig:
             print(f" Window resized to {AppConfig.MOBILE_WIDTH}x{AppConfig.MOBILE_HEIGHT} (mobile simulation)")
 
 
+class FontScale:
+    TITLE = 0.45
+    SUBTITLE = 0.45
+    BUTTON = 0.35
+    BUTTON_SMALL = 0.32
+    INPUT = 0.38
+    PIXEL_TITLE = 0.40
+
 # COMMON TEXT/STRINGS
 
 class Strings:
