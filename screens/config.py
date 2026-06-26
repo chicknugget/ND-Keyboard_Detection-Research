@@ -1,7 +1,4 @@
 # screens/config.py
-"""
-Colors, dimensions, fonts, and Android configuration
-"""
 
 from kivy.metrics import dp, sp
 from kivy.core.window import Window
@@ -289,5 +286,5 @@ def init_app_config():
     Window.softinput_mode = 'below_target'
     
     # Uncomment the line below to set mobile window size for PC testing
-    # AppConfig.set_window_size_mobile()
+    AppConfig.set_window_size_mobile()
 
