@@ -127,6 +127,14 @@ When you are ready, click START GAME to begin.
 
         self.instructions_label.text = self.instructions_text
 
+        # reset the scrollview position to the top
+        if self.instructions_label.parent and self.instructions_label.parent.parent:
+            self.instructions_label.parent.parent.scroll_y = 1
+
+        
+
+
+
 
     def on_start_study(self, instance):
         """Generate session ID and start first game"""
