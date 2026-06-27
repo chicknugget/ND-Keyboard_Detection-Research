@@ -1,4 +1,3 @@
-
 # screens/game_container_screen.py 
 
 
@@ -17,20 +16,25 @@ from data.models import GameResult
 from screens.config import Colors, Layout, Typography
 
 
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
+from kivy.metrics import dp
+
+
 GAME_SETTINGS = {
-    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 5, 'bg_music':'relaxation', 'bg_colour': (255/255, 250/255, 205/255, 1)},
+    'relaxation': {'rigged': None, 'speed': 0.65, 'no_of_glasses': 3, 'points_show': False, 'total_rounds': 1, 'bg_music':'relaxation', 'bg_colour': (255/255, 250/255, 205/255, 1)},
 
-    'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'happy', 'bg_colour': (212/255, 177/255, 66/255, 1)},
+    'happy':      {'rigged': "rig_win", 'speed': 0.5, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 1, 'bg_music':'happy', 'bg_colour': (212/255, 177/255, 66/255, 1)},
 
-    'boredom':    {'rigged': None, 'speed': 0.7, 'no_of_glasses': 2, 'points_show': True, 'total_rounds': 3, 'bg_music':'boredom', 'bg_colour': (222/255, 217/255, 217/255, 1)},
+    'boredom':    {'rigged': None, 'speed': 0.7, 'no_of_glasses': 2, 'points_show': True, 'total_rounds': 1, 'bg_music':'boredom', 'bg_colour': (222/255, 217/255, 217/255, 1)},
 
-    'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 5, 'bg_music':'sad', 'bg_colour': (64/255, 64/255, 64/255, 1)},
+    'sad':        {'rigged': "rig_nwin_oloss", 'speed': 0.5, 'no_of_glasses': 4, 'points_show': True, 'total_rounds': 1, 'bg_music':'sad', 'bg_colour': (64/255, 64/255, 64/255, 1)},
 
-    'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 5, 'bg_music':'frustrated', 'bg_colour': (242/255, 133/255, 0/255, 1)},
+    'frustrated': {'rigged': "rig_owin_nloss", 'speed': 0.4, 'no_of_glasses': 5, 'points_show': True,  'total_rounds': 1, 'bg_music':'frustrated', 'bg_colour': (242/255, 133/255, 0/255, 1)},
 
-    'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 5, 'bg_music':'stress', 'bg_colour': (255/255, 36/255, 0/255, 1)},
+    'stress':     {'rigged': "rig_lose", 'speed': 0.35, 'no_of_glasses': 6, 'points_show': True, 'total_rounds': 1, 'bg_music':'stress', 'bg_colour': (255/255, 36/255, 0/255, 1)},
 
-    'relaxation_final': {'rigged': "rig_win", 'speed': 0.65, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 5, 'bg_music':'relaxation', 'bg_colour': (97/255, 112/255, 44/255, 1)}
+    'relaxation_final': {'rigged': "rig_win", 'speed': 0.65, 'no_of_glasses': 3, 'points_show': True, 'total_rounds': 1, 'bg_music':'relaxation', 'bg_colour': (97/255, 112/255, 44/255, 1)}
 }
 
 
@@ -202,30 +206,89 @@ class GameContainerScreen(BaseScreen):
             print(f"  Navigating to post_task_{self.emotion}")
 
     
+    # def on_quit(self, instance):
+    #     """Override quit button to navigate to completion screen instead of closing app"""
+
+    #     for widget in self.game_placeholder.children:
+    #         if hasattr(widget, 'bg_music') and widget.bg_music:
+    #             widget.bg_music.stop()
+
+    #     app = App.get_running_app()
+    #     tasks_completed = len(app.user_data.get('tasks', []))
+        
+        
+    #     # Record session end time (only if session has started)
+    #     if 'session_start_time' in app.user_data:
+    #         session_end_time = int(__import__('time').time() * 1000)
+    #         app.user_data['session_end_time'] = session_end_time
+    #         print(f" Session end time: {session_end_time}")
+        
+    #     print(f" Quit pressed - navigating to completion screen")
+    #     print(f" Tasks completed: {tasks_completed} out of 7")
+
+    #     if hasattr(app, 'db'):
+    #         app.db.update_session(
+    #             app.user_data.get('session_id', ''), status='quit', 
+    #                               end_time=int(__import__('time').time() * 1000))
+        
+    #     # Navigate to completion screen (will show 0 tasks if no games completed)
+    #     self.manager.current = 'completion'
+
+
     def on_quit(self, instance):
-        """Override quit button to navigate to completion screen instead of closing app"""
+        """Show confirmation popup before quitting to completion screen"""
 
-        for widget in self.game_placeholder.children:
-            if hasattr(widget, 'bg_music') and widget.bg_music:
-                widget.bg_music.stop()
+        content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
+        content.add_widget(Label(
+            text='Are you sure you want to quit?\nYour progress will be saved up to this point.',
+            color=Colors.TEXT_BLACK,
+            halign='center',
+            valign='middle'
+        ))
+        content.children[0].bind(size=content.children[0].setter('text_size'))
 
-        app = App.get_running_app()
-        tasks_completed = len(app.user_data.get('tasks', []))
-        
-        
-        # Record session end time (only if session has started)
-        if 'session_start_time' in app.user_data:
-            session_end_time = int(__import__('time').time() * 1000)
-            app.user_data['session_end_time'] = session_end_time
-            print(f" Session end time: {session_end_time}")
-        
-        print(f" Quit pressed - navigating to completion screen")
-        print(f" Tasks completed: {tasks_completed} out of 7")
+        btn_row = BoxLayout(spacing=dp(10), size_hint_y=0.4)
 
-        if hasattr(app, 'db'):
-            app.db.update_session(
-                app.user_data.get('session_id', ''), status='quit', 
-                                  end_time=int(__import__('time').time() * 1000))
-        
-        # Navigate to completion screen (will show 0 tasks if no games completed)
-        self.manager.current = 'completion'
+        popup = Popup(
+            title='Confirm Quit',
+            content=content,
+            size_hint=(0.7, 0.35),
+            auto_dismiss=False
+        )
+
+        def do_quit(*_):
+            popup.dismiss()
+            #  ORIGINAL QUIT LOGIC 
+            for widget in self.game_placeholder.children:
+                if hasattr(widget, 'bg_music') and widget.bg_music:
+                    widget.bg_music.stop()
+
+            app = App.get_running_app()
+            tasks_completed = len(app.user_data.get('tasks', []))
+            
+            # Record session end time (only if session has started)
+            if 'session_start_time' in app.user_data:
+                session_end_time = int(__import__('time').time() * 1000)
+                app.user_data['session_end_time'] = session_end_time
+                print(f" Session end time: {session_end_time}")
+            
+            print(f" Quit pressed - navigating to completion screen")
+            print(f" Tasks completed: {tasks_completed} out of 7")
+
+            if hasattr(app, 'db'):
+                app.db.update_session(
+                    app.user_data.get('session_id', ''), status='quit', 
+                                      end_time=int(__import__('time').time() * 1000))
+            
+            # Navigate to completion screen
+            self.manager.current = 'completion'
+            # end of ORIGINAL QUIT LOGIC
+
+        yes_btn = Button(text='Yes, Quit', on_press=do_quit)
+        no_btn = Button(text='Cancel', on_press=lambda *_: popup.dismiss())
+
+        btn_row.add_widget(yes_btn)
+        btn_row.add_widget(no_btn)
+        content.add_widget(btn_row)
+
+        popup.open()
