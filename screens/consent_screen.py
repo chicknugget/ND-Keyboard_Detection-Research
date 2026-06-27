@@ -38,25 +38,25 @@ recognition through typing patterns. Your contribution will help us better
 understand how emotions may influence the way people type.
 
 ABOUT THIS STUDY:
-• We are exploring how emotions affect typing patterns (keystroke dynamics)
-• This is an academic research project
-• Participation takes approximately 5–10 minutes
+ -We are exploring how emotions affect typing patterns (keystroke dynamics)
+ -This is an academic research project
+ -Participation takes approximately 5–10 minutes
 
 YOUR PRIVACY:
-• We collect only typing timing and keystroke patterns
-• No personal information is collected
-• Your data will be stored securely and used only for research purposes
+ -We collect only typing timing and keystroke patterns
+ -No personal information is collected
+ -Your data will be stored securely and used only for research purposes
 
 WHAT TO EXPECT:
-• Some tasks may be slightly challenging and could cause mild, temporary frustration
-• Your participation is completely voluntary
-• You may withdraw from the study at any time before submitting your data
+ -Some tasks may be slightly challenging and could cause mild, temporary frustration
+ -Your participation is completely voluntary
+ -You may withdraw from the study at any time before submitting your data
 
 By checking all of the boxes below, you confirm that:
-• You are 18+ years of age or older
-• You have read and understood the study information
-• You understand what participation involves
-• You voluntarily agree to take part in this study
+ -You are 18+ years of age or older
+ -You have read and understood the study information
+ -You understand what participation involves
+ -You voluntarily agree to take part in this study
 """
         
         info_layout = BoxLayout(
