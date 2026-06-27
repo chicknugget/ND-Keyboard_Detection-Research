@@ -8,24 +8,26 @@ from kivy.uix.widget import Widget
 
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI, BASE_PATH
-from screens.pixel_ui_wrapper import PixelFrame
 from screens.utils import load_participant_data
 import os
+
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
+from kivy.uix.button import Button
 
 
 class CompletionScreen(BaseScreen):
     def __init__(self, **kwargs):
-        super(CompletionScreen, self).__init__(**kwargs)
-        
-        # Create pixel frame wrapper with custom layout
-        # Title with stars, then mushroom handsdown, then content
-        self.pixel_frame = PixelFrame(
-            title='THANK YOU! ',
-            show_stars=True,
-            show_header=True,
-            show_quit=False,
-            show_reset=False
-        )
+        super(CompletionScreen, self).__init__(enable_wrapper=True,
+                                                title='THANK YOU! ',
+                                                show_stars=True,
+                                                show_header=True,
+                                                show_quit=False,
+                                                show_reset=False, **kwargs)
+        # Override title bar to be taller on completion screen only
+        if hasattr(self, 'title_bar') and self.title_bar:
+            self.title_bar.size_hint_y = 0.12   # increase from 0.09 to 0.14
+    
         
         # Add mushroom handsdown below title (in the main container)
         self._add_mushroom_below_title()
@@ -38,82 +40,85 @@ class CompletionScreen(BaseScreen):
         )
         
         # Completion confirmation
-        self.complete_msg = self.create_subtitle(
-            'You completed all 7 games successfully!',
+        self.complete_msg = Label(
+            text='You completed all 7 games successfully!',
             color=Colors.TEXT_BLACK,
-            wrap=False
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_STANDARD,
+            bold=True,
+            halign='center',
+            valign='middle',
+            size_hint_y=0.12
         )
-        self.complete_msg.font_name = PixelUI.FONT_BODY
-        self.complete_msg.font_size = Typography.PIXEL_BODY_LARGE
-        self.complete_msg.halign = 'center'
-        self.complete_msg.valign = 'middle'
-        self.complete_msg.size_hint_y = None
-        self.complete_msg.height = dp(58)
         self.complete_msg.bind(
             size=lambda i, v: setattr(i, 'text_size', (v[0], v[1]))
         )
+
         main_layout.add_widget(self.complete_msg)
         
         # Session Summary Box
-        summary_container = self.create_card(
-            size_hint=(1, 1),
-            padding=dp(12),
-            bg_color=Colors.BACKGROUND_LIGHT_BLUE
+        # Session Summary Box — scrollable so stats text never overflows
+        summary_scroll_content = BoxLayout(
+            orientation='vertical', size_hint_y=None, padding=[dp(6), dp(6), dp(6), dp(6)], spacing=dp(6)
         )
-        
-        summary_layout = BoxLayout(
-            orientation='vertical',
-            spacing=dp(8),
-            padding=[dp(6), dp(6), dp(6), dp(6)]
-        )
-        
-        summary_title = self.create_title(
-            'Session Summary',
-            size='standard',
-            color=Colors.PRIMARY_BLUE
-        )
-        summary_title.font_name = PixelUI.FONT_TITLE
-        summary_title.font_size = Typography.PIXEL_TITLE_SMALL
-        summary_title.height = dp(58)
+        summary_scroll_content.bind(minimum_height=summary_scroll_content.setter('height'))
 
-        
-        # Dynamic stats label - will be updated in on_enter
-        self.stats_label = self.create_subtitle('Loading stats...', color=Colors.TEXT_BLACK, wrap=False)
-        self.stats_label.font_name = PixelUI.FONT_BODY
-        self.stats_label.font_size = Typography.PIXEL_BODY_SMALL
-        self.stats_label.halign = 'left'
-        self.stats_label.valign = 'top'
-        self.stats_label.size_hint = (1, 1)
+        summary_title = Label(
+            text='Session Summary',
+            font_name=PixelUI.FONT_TITLE,
+            font_size=Typography.PIXEL_TITLE_SMALL,
+            color=Colors.PRIMARY_BLUE,
+            bold=True,
+            halign='center',
+            valign='middle',
+            size_hint_y=None,
+            height=dp(36)
+        )
+        summary_title.bind(size=summary_title.setter('text_size'))
+
+        self.stats_label = Label(
+            text='Loading stats...',
+            color=Colors.TEXT_BLACK,
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_STANDARD,
+            halign='left',
+            valign='top',
+            size_hint_y=None,
+            size_hint_x=1
+        )
         self.stats_label.bind(
-            size=lambda i, v: setattr(i, 'text_size', (max(v[0] - dp(8), 0), v[1]))
+            width=lambda i, v: setattr(i, 'text_size', (max(v - dp(8), 0), None)),
+            texture_size=lambda i, v: setattr(i, 'height', v[1])
         )
+        summary_scroll_content.add_widget(summary_title)
+        summary_scroll_content.add_widget(self.stats_label)
 
-        # Keep title at top and stats directly below.
-        summary_layout.add_widget(summary_title)
-        summary_layout.add_widget(self.stats_label)
-        summary_container.add_widget(summary_layout)
+        summary_container = self.create_scrollable_content(summary_scroll_content, size_hint=(1, 1))
         main_layout.add_widget(summary_container)
-        
+                
 
-        # Buttons: ONLY Replay and Close (Export completely removed per requirements)
+        # Buttons: ONLY Replay and Close
         buttons_layout = BoxLayout(
             orientation='horizontal',
-            size_hint_y=None,
-            height=Layout.BUTTON_HEIGHT_STANDARD + Layout.SPACING_STANDARD,
+            # size_hint_y=None,
+            # height=Layout.BUTTON_HEIGHT_STANDARD + Layout.SPACING_STANDARD,
+            size_hint_y= 0.12,
             spacing=Layout.SPACING_STANDARD,
             padding=(dp(2), 0)
         )
         
-        # REPLAY button (50% width since export removed)
+        # REPLAY button 
         replay_btn = self.create_button(
             text=Strings.BTN_REPLAY,
             on_press=self.on_replay,
             button_type='success'
         )
         replay_btn.size_hint_x = 0.5
+        replay_btn.size_hint_y=1
+        replay_btn.bind(height=lambda inst, val: setattr(inst, 'font_size',val*0.35))
         buttons_layout.add_widget(replay_btn)
         
-        # CLOSE APP button (50% width)
+        # CLOSE APP button
         close_btn = self.create_button(
             text=Strings.BTN_CLOSE,
             on_press=self.on_close,
@@ -121,47 +126,49 @@ class CompletionScreen(BaseScreen):
         )
         close_btn.size_hint_x = 0.5
         close_btn.background_color = Colors.DANGER_RED_DARK
+        close_btn.size_hint_y=1
+        close_btn.bind(height=lambda inst, val: setattr(inst, 'font_size',val*0.35))
+        
         buttons_layout.add_widget(close_btn)
         
         main_layout.add_widget(buttons_layout)
         
-        # Set content to pixel frame
-        self.pixel_frame.set_content(main_layout)
-        self.add_widget(self.pixel_frame)
+        self.set_content(main_layout)
+
 
     def _add_mushroom_below_title(self):
-        """Add mushroom handsdown image below the title"""
+        """Add mushroom handsdown image below the title, resizes with window"""
         source = os.path.join(BASE_PATH, 'assets', 'ui', 'mushroom_handsdown.png')
         if not os.path.exists(source):
             return
-        
-        # Create a horizontal layout for the mushroom below title
+
         mushroom_row = BoxLayout(
             orientation='horizontal',
-            size_hint_y=None,
-            height=dp(80),
+            size_hint_y=0.25,       # proportional — 25% of main_container height
             spacing=dp(10),
             padding=[dp(20), dp(5)]
         )
-        
-        # Center the mushroom
+
         mush_img = Image(
             source=source,
             size_hint=(None, None),
-            size=(dp(80), dp(80)),
             allow_stretch=True,
             keep_ratio=True,
             pos_hint={'center_x': 0.5}
         )
-        
-        mushroom_row.add_widget(Widget())  # Left spacer
+        # Bind BOTH dimensions to the parent row's height so it scales with window
+        def resize_mushroom(row, val):
+            mush_img.height = val * 0.95
+            mush_img.width = val * 0.95
+
+        mushroom_row.bind(height=resize_mushroom)
+
+        mushroom_row.add_widget(Widget())    # Left spacer — pushes image to center
         mushroom_row.add_widget(mush_img)
-        mushroom_row.add_widget(Widget())  # Right spacer
-        
-        # Insert after title bar (index 1, after title at index 0)
-        # The main_container is the second child of PixelFrame (after background)
-        if hasattr(self.pixel_frame, 'main_container'):
-            self.pixel_frame.main_container.add_widget(mushroom_row, index=1)
+        mushroom_row.add_widget(Widget())    # Right spacer
+
+        if hasattr(self, 'main_container'):
+            self.main_container.add_widget(mushroom_row, index=1)
     
     def on_enter(self):
         """Update stats when screen is entered"""
@@ -195,50 +202,104 @@ class CompletionScreen(BaseScreen):
                 
         # UI text
         if games_completed == 7:
-            self.complete_msg.text = 'CONGRATULATIONS! You completed all 7 levels successfully'
+            self.complete_msg.text = 'CONGRATULATIONS! \nYou completed all 7 levels successfully'
         elif games_completed > 0:
             self.complete_msg.text = f'You completed {games_completed} levels out of 7 levels.'
         else:
-            self.complete_msg.text = 'Session ended. No levels completed.'
+            self.complete_msg.text = 'Session ended. \nNo levels completed.'
         
         # Update stats text
         stats_text = (
+            f"- Participant ID:\n  {participant_id}\n"
             f"- {games_completed} levels completed\n"
             f"- {session_time} total time\n"
-            f"- Participant ID:\n  {participant_id}\n"
-            f"- Total sessions: {total_sessions}"
+            f"- Total sessions: {total_sessions}\n\n"
+            "Thank you for being a part of our study.\nWe truly appreciate the time and effort you've shared with us.\nYour participation means a lot to our team."
         )
         
         self.stats_label.text = stats_text
         
         print(f" Completion screen showing: {games_completed} levels, {total_keystrokes} keystrokes")
     
-    def on_replay(self, instance):
-        """Replay game - skip to instructions with new session ID"""
-        app = App.get_running_app()
+    # def on_replay(self, instance):
+    #     """Replay game - skip to instructions with new session ID"""
+    #     app = App.get_running_app()
 
-        participant_id = app.user_data.get('participant_id')
-        demographics = app.user_data.get('demographics', {})
+    #     participant_id = app.user_data.get('participant_id')
+    #     demographics = app.user_data.get('demographics', {})
         
-        # Generate new session ID
-        # session_id = generate_session_id() //redundant
+    #     # Generate new session ID
+    #     # session_id = generate_session_id() //redundant
         
-        # Reset user data
-        app.user_data = {
-            'participant_id': participant_id,
-            'demographics': demographics,
-            'session_id': None, #session_id,
-            'current_game': 0,
-            'tasks': [],
-            'debriefing_complete': False
-        }
+    #     # Reset user data
+    #     app.user_data = {
+    #         'participant_id': participant_id,
+    #         'demographics': demographics,
+    #         'session_id': None, #session_id,
+    #         'current_game': 0,
+    #         'tasks': [],
+    #         'debriefing_complete': False
+    #     }
         
-        print(f" REPLAY pressed")
-        self.manager.current = 'instructions'
+    #     print(f" REPLAY pressed")
+    #     self.manager.current = 'instructions'
     
+    # def on_close(self, instance):
+    #     """Close the entire app"""
+    #     print("Session closed")
+    #     App.get_running_app().stop()
+
+
+    def on_replay(self, instance):
+
+        content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
+        content.add_widget(Label(
+            text='Start a new session?\nYour participant ID will be kept.',
+            color=Colors.TEXT_BLACK, halign='center', valign='middle'
+        ))
+        content.children[0].bind(size=content.children[0].setter('text_size'))
+        btn_row = BoxLayout(spacing=dp(10), size_hint_y=0.4)
+        popup = Popup(title='Replay Session', content=content,
+                    size_hint=(0.7, 0.35), auto_dismiss=False)
+
+        def do_replay(*_):
+            popup.dismiss()
+            app = App.get_running_app()
+            participant_id = app.user_data.get('participant_id')
+            demographics = app.user_data.get('demographics', {})
+            app.user_data = {
+                'participant_id': participant_id,
+                'demographics': demographics,
+                'session_id': None,
+                'current_game': 0,
+                'tasks': [],
+                'debriefing_complete': False
+            }
+            print(" REPLAY pressed")
+            self.manager.current = 'instructions'
+
+        btn_row.add_widget(Button(text='Yes, Replay', on_press=do_replay))
+        btn_row.add_widget(Button(text='Cancel', on_press=lambda *_: popup.dismiss()))
+        content.add_widget(btn_row)
+        popup.open()
+
+
     def on_close(self, instance):
-        """Close the entire app"""
-        print("Session closed")
-        App.get_running_app().stop()
+
+        content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
+        content.add_widget(Label(
+            text='Are you sure you want to close the app?\nAll session data will be finalized.',
+            color=Colors.TEXT_BLACK, halign='center', valign='middle'
+        ))
+        content.children[0].bind(size=content.children[0].setter('text_size'))
+        btn_row = BoxLayout(spacing=dp(10), size_hint_y=0.4)
+        popup = Popup(title='Close App', content=content,
+                    size_hint=(0.7, 0.35), auto_dismiss=False)
+        btn_row.add_widget(Button(text='Yes, Close',
+                                on_press=lambda *_: App.get_running_app().stop()))
+        btn_row.add_widget(Button(text='Cancel',
+                                on_press=lambda *_: popup.dismiss()))
+        content.add_widget(btn_row)
+        popup.open()
 
         
