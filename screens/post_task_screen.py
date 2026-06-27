@@ -20,7 +20,6 @@ from kivy.clock import Clock
 
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI, BASE_PATH
-from screens.pixel_ui_wrapper import PixelFrame
 
 MIN_TYPING_LENGTH = 16
  
@@ -43,34 +42,59 @@ class PostTaskScreen(BaseScreen):
     task_type = StringProperty('relaxation')
     selected_emoji = StringProperty('')
     typed_length = NumericProperty(0)
-    
+
     def __init__(self, task_type='relaxation', **kwargs):
-        super(PostTaskScreen, self).__init__(**kwargs)
-        self.task_type = task_type
-        
-        # Create pixel frame wrapper with title
-        self.pixel_frame = PixelFrame(
+        super(PostTaskScreen, self).__init__(
+            enable_wrapper=True,
             title='FEEDBACK',
-            show_stars=False,
+            show_stars=True,         
             show_header=True,
             show_quit=False,
-            show_reset=False
+            show_reset=False, **kwargs
         )
-        
-        # Main vertical layout (preserved structure)
+        self.task_type = task_type
+
+        # Main vertical layout — all proportional
         main_layout = BoxLayout(
             orientation='vertical',
             padding=[dp(6), dp(4), dp(6), dp(4)],
-            spacing=dp(6)
+            spacing=dp(5)
         )
-        
-        # Sentences instruction card 
-        sentences_card = self.create_card(
-            size_hint=(1, None), 
-            height=dp(140),
-            padding=dp(6)
+
+        # 1. INSTRUCTION SUBTITLE 
+        instruction_label = Label(
+            text=(
+                'Please provide your feedback below.\n'
+                'Type any ONE of the sentences below, type at least 16 characters.'
+                'You can provide your own thoughts.'
+            ),
+
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.BUTTON_SMALL,
+            color=Colors.TEXT_BLACK,
+            halign='center',
+            valign='middle',
+            size_hint_y=0.12
         )
-        
+        instruction_label.bind( width=lambda i, v: setattr(i, 'text_size', (v, None)))
+
+        main_layout.add_widget(instruction_label)
+
+
+
+
+
+        # 2. SENTENCES CARD (scrollable so it doesn't overflow) 
+        sentences_scroll_content = BoxLayout(
+            orientation='vertical',
+            size_hint_y=None,
+            padding=[dp(6), dp(4)],
+            spacing=dp(2)
+        )
+        sentences_scroll_content.bind(
+            minimum_height=sentences_scroll_content.setter('height')
+        )
+
         sentences_text = '\n'.join([f"{i+1}. {s}" for i, s in enumerate(SENTENCE_OPTIONS)])
         sentences_label = Label(
             text=sentences_text,
@@ -79,122 +103,83 @@ class PostTaskScreen(BaseScreen):
             color=Colors.TEXT_BLACK,
             halign='left',
             valign='top',
-            text_size=(None, None)
+            size_hint_y=None
         )
-        sentences_label.bind(size=sentences_label.setter('text_size'))
-        sentences_card.add_widget(sentences_label)
+        sentences_label.bind(
+            width=lambda i, v: setattr(i, 'text_size', (v, None)),
+            texture_size=lambda i, v: setattr(i, 'height', v[1])
+        )
+        sentences_scroll_content.add_widget(sentences_label)
+
+        sentences_card = self.create_scrollable_content(
+            sentences_scroll_content, size_hint=(1, 0.24)
+        )
         main_layout.add_widget(sentences_card)
-        
-        # Input box
+
+        # 3. INPUT BOX 
         self.typed_display = self.create_input_field(
-            hint_text='Tap here & type any one sentence here...',
+            hint_text='Start Typing...',
             multiline=True
         )
         self.typed_display.font_name = PixelUI.FONT_BODY
-        # Block the OS keyboard — input comes from CustomKeyboard
-        # is_focusable is kept True so tapping shows a cursor and triggers focus
+        self.typed_display.size_hint_y = 0.10      # override the 0.08 from factory
         self.typed_display.keyboard_mode = 'managed'
         self.typed_display.is_focusable = True
-        # self.typed_display.is_focusable = False
+        self.typed_display.bind(height=lambda inst, val: setattr(inst, 'font_size', Typography.PIXEL_BODY_LARGE))
         self.typed_display.bind(text=self.on_text_change)
         self.typed_display.bind(focus=self.on_text_focus)
         main_layout.add_widget(self.typed_display)
-        
-        # Character counter
+
+        # 4. CHARACTER COUNTER 
         self.char_counter = Label(
             text=f'0 / {MIN_TYPING_LENGTH} characters (minimum)',
             font_name=PixelUI.FONT_BODY,
-            font_size=Typography.BODY_TINY,
-            color=Colors.DISABLED_GRAY,
-            size_hint_y=None,
-            height=dp(16),
-            halign='right'
-            # width will auto-adjust based on text
-        )
-        main_layout.add_widget(self.char_counter)
-        
-        #Emoji selection title
-        self.emoji_title = Label(
-            text='Select your feeling:',
-            font_name=PixelUI.FONT_BODY,
             font_size=Typography.PIXEL_BODY_SMALL,
-            color=Colors.WARNING_ORANGE ,
-            size_hint_y=None,
-            height=dp(20),
-            opacity=0
+            color=Colors.DISABLED_GRAY,
+            size_hint_y=0.04,
+            halign='right',
+            valign='middle'
         )
-        main_layout.add_widget(self.emoji_title)
-        
-        # Emoji grid
-        self.emoji_grid = GridLayout(
-            cols=6,
-            size_hint_y=None,
-            height=dp(60),
-            spacing=dp(4),
-            padding=dp(2)
-        )
-        self.emoji_buttons = []
-        
-        for emoji in Strings.FIXED_EMOJIS:
-            btn = EmojiImageButton(
-                source=emoji['source'],
-                size_hint=(None, None),
-                size=(dp(45), dp(45)),
-                opacity=0.5
-            )
-            btn.emoji_id = emoji['id']
-            btn.bind(on_press=lambda x, e=emoji['id']: self.select_emoji(e))
-            self.emoji_grid.add_widget(btn)
-            self.emoji_buttons.append(btn)
+        self.char_counter.bind(size=self.char_counter.setter('text_size'))
+        main_layout.add_widget(self.char_counter)
 
-        # Emoji row background card
-        self.emoji_card = self.create_card(
-            size_hint=(1, None),
-            height=dp(72),
-            padding=dp(4),
-            bg_color=Colors.BACKGROUND_LIGHT_GRAY
-        )
-        self.emoji_card.opacity = 0
-        self.emoji_card.add_widget(self.emoji_grid)
-        main_layout.add_widget(self.emoji_card)
-        
-        #  KEYBOARD PLACEHOLDER
+        # 5. CUSTOM KEYBOARD (always visible)
         self.keyboard_placeholder = self.create_card(
-            size_hint=(1, None),
-            height=0,  # Hidden initially
+            size_hint=(1, 0.32),
             padding=dp(1)
         )
-        self.keyboard_placeholder.opacity = 0
-        
-        # Create larger keyboard - increased height
         self.keyboard = CustomKeyboard()
         self.keyboard_placeholder.add_widget(self.keyboard)
 
         main_layout.add_widget(self.keyboard_placeholder)
 
-        
-        # Submit button container
-        submit_container = BoxLayout(
-            size_hint_y=None,
-            height=dp(56),
-            padding=(dp(2), 0)
-        )
-        self.submit_btn = self.create_button(
-            text=Strings.BTN_SUBMIT,
-            on_press=self.on_submit,
+
+        # 6. DONE BUTTON 
+        self.done_btn = self.create_button(
+            text='DONE',
+            on_press=self.on_done_pressed,
             button_type='success',
             disabled=True
         )
-        submit_container.add_widget(self.submit_btn)
-        main_layout.add_widget(submit_container)
-        
-        # Set content to pixel frame
-        self.pixel_frame.set_content(main_layout)
-        self.add_widget(self.pixel_frame)
+        self.done_btn.size_hint_y = 0.08
+        self.done_btn.background_color = Colors.DISABLED_GRAY
+
+        main_layout.add_widget(self.done_btn)
+
+        # Set content
+        self.set_content(main_layout)
+
+
+        # ── Emoji popup state (built lazily on first use) ──
+        self._emoji_popup = None
+        self._submit_btn_popup = None
+        self._popup_emoji_buttons = []
+    
+
     
     def on_enter(self):
         """Reset for fresh task"""
-        super().on_enter()
+        super().on_enter() if hasattr(super(), 'on_enter') else None
         self.reset_screen()
         self.typed_display.disabled = False
         self.typed_display.readonly = False
@@ -207,83 +192,174 @@ class PostTaskScreen(BaseScreen):
         self.keyboard.reset()
     
     def reset_screen(self):
+
         self.typed_display.text = ''
         self.typed_display.focus = False
         self.typed_display.disabled = False
         self.typed_display.readonly = False
         self.typed_length = 0
+
         self.selected_emoji = ''
         self.char_counter.text = f'0 / {MIN_TYPING_LENGTH} characters (minimum)'
-        self.char_counter.color = Colors.TEXT_GRAY
-        self.emoji_title.opacity = 0
-        self.emoji_grid.opacity = 0
-        self.emoji_card.opacity = 0
-        for btn in self.emoji_buttons:
-            btn.opacity = 0
-            btn.disabled = True
-        self.submit_btn.disabled = True
-        self.submit_btn.background_color = Colors.DISABLED_GRAY
-        self.emoji_click_history = []   # track every emoji tap
+        self.char_counter.color = Colors.DISABLED_GRAY
+        self.done_btn.disabled = True
+        self.done_btn.background_color = Colors.DISABLED_GRAY
+
+        self.emoji_click_history = []
         self.keystroke_count = 0
         self.backspace_count = 0
-        # Hide the keyboard on reset
-        self.keyboard_placeholder.height = 0
-        self.keyboard_placeholder.opacity = 0
-        # Show title when keyboard is hidden
-        self.pixel_frame.show_title()
+
+        # Dismiss emoji popup if open
+        if self._emoji_popup:
+            self._emoji_popup.dismiss()
+            self._emoji_popup = None
+        self.show_title()
+
         print(f"PostTaskScreen({self.task_type}) reset")
 
+
     def on_text_focus(self, instance, focused):
-        """Show custom keyboard when text box is tapped; hide when focus is lost."""
+        """Keyboard is always visible now — nothing to show/hide on focus"""
+
         if focused:
-            # Enlarged keyboard height
-            self.keyboard_placeholder.height = dp(188)
             self.typing_start_time = int(__import__('time').time() * 1000)
-            self.keyboard_placeholder.opacity = 1
-        else:
-            self.keyboard_placeholder.height = 0
-            self.keyboard_placeholder.opacity = 0
+
+
     
+
+
+
     def on_text_change(self, instance, value):
         self.typed_length = len(value)
         self.char_counter.text = f'{self.typed_length} / {MIN_TYPING_LENGTH} characters (minimum)'
-        
+
         if self.typed_length >= MIN_TYPING_LENGTH:
-            #  ENABLE EMOJIS
             self.char_counter.color = Colors.SUCCESS_GREEN
-            self.emoji_title.opacity = 1
-            self.emoji_grid.opacity = 1
-            self.emoji_card.opacity = 1
-            for btn in self.emoji_buttons:
-                btn.opacity = 0.8
-                btn.disabled = False
+            self.done_btn.disabled = False
+            self.done_btn.background_color = Colors.SUCCESS_GREEN
         else:
-            #  DISABLE EMOJIS
             self.char_counter.color = Colors.WARNING_ORANGE
-            self.emoji_title.opacity = 0.1
-            self.emoji_grid.opacity = 0.1
-            self.emoji_card.opacity = 0.1
-            for btn in self.emoji_buttons:
-                btn.opacity = 0.1
-                btn.disabled = True
+            self.done_btn.disabled = True
+            self.done_btn.background_color = Colors.DISABLED_GRAY
             self.selected_emoji = ''
-            self.submit_btn.disabled = True
-            self.submit_btn.background_color = Colors.DISABLED_GRAY
+
     
-    def select_emoji(self, emoji_id):
+    def on_done_pressed(self, instance):
+        """Show emoji selection popup when DONE is pressed"""
+        from kivy.uix.popup import Popup
+        from kivy.uix.floatlayout import FloatLayout
+
+        # Defocus keyboard
+        self.typed_display.focus = False
+
+        # Build popup content
+        content = BoxLayout(
+            orientation='vertical',
+            spacing=dp(10),
+            padding=dp(16)
+        )
+
+        # Title
+        emoji_title = Label(
+            text='Select your feelings :',
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_STANDARD,
+            color=Colors.WARNING_ORANGE,
+            bold=True,
+            size_hint_y=None,
+            height=dp(30),
+            halign='center',
+            valign='middle'
+        )
+        emoji_title.bind(size=emoji_title.setter('text_size'))
+        content.add_widget(emoji_title)
+
+        # Emoji grid — 2 cols, 3 rows
+        self._popup_emoji_buttons = []
+        emoji_grid = GridLayout(
+            cols=2,
+            size_hint_y=None,
+            height=dp(270),
+            spacing=dp(10),
+            padding=dp(6)
+        )
+
+        for emoji in Strings.FIXED_EMOJIS:
+            btn = EmojiImageButton(
+                source=emoji['source'],
+                size_hint=(1, None),
+                height=dp(85),
+                opacity=1.0
+            )
+            btn.emoji_id = emoji['id']
+            btn.bind(on_press=lambda x, e=emoji['id']: self._popup_select_emoji(e))
+            emoji_grid.add_widget(btn)
+            self._popup_emoji_buttons.append(btn)
+
+        content.add_widget(emoji_grid)
+
+        # Submit button — disabled until emoji selected
+        self._submit_btn_popup = Button(
+            text=Strings.BTN_SUBMIT,
+            size_hint_y=None,
+            height=dp(44),
+            background_normal='',
+            background_color=Colors.DISABLED_GRAY,
+            disabled=True,
+            on_press=self._on_popup_submit
+        )
+        content.add_widget(self._submit_btn_popup)
+
+        self._emoji_popup = Popup(
+            title='',
+            content=content,
+            size_hint=(0.88, 0.75),
+            auto_dismiss=False,
+            separator_height=0
+        )
+        self._emoji_popup.open()
+
+    def _popup_select_emoji(self, emoji_id):
+        """Handle emoji selection inside popup — hide others, activate submit"""
         self.selected_emoji = emoji_id
-        self.emoji_click_history.append(emoji_id)   # record every tap
-        # Reset all to muted
-        for btn in self.emoji_buttons:
-            btn.opacity = 0.8
-        # Highlight selected
-        for btn in self.emoji_buttons:
+        self.emoji_click_history.append(emoji_id)
+
+        # Hide all other emoji buttons — keep only the selected one
+        for btn in self._popup_emoji_buttons:
             if btn.emoji_id == emoji_id:
                 btn.opacity = 1.0
-                break
-        # Enable submit
-        self.submit_btn.disabled = False
-        self.submit_btn.background_color = Colors.SUCCESS_GREEN
+                btn.disabled = False
+            else:
+                btn.opacity = 0       # disappear unselected ones
+                btn.disabled = True
+
+        # Activate submit button
+        if self._submit_btn_popup:
+            self._submit_btn_popup.disabled = False
+            self._submit_btn_popup.background_color = Colors.SUCCESS_GREEN
+
+    def _on_popup_submit(self, instance):
+        """Dismiss emoji popup and run on_submit logic"""
+        if self._emoji_popup:
+            self._emoji_popup.dismiss()
+            self._emoji_popup = None
+        # Delegate to the existing on_submit which handles all backend + navigation
+        self.on_submit(instance)
+    
+    # def select_emoji(self, emoji_id):
+    #     self.selected_emoji = emoji_id
+    #     self.emoji_click_history.append(emoji_id)   # record every tap
+    #     # Reset all to muted
+    #     for btn in self.emoji_buttons:
+    #         btn.opacity = 0.8
+    #     # Highlight selected
+    #     for btn in self.emoji_buttons:
+    #         if btn.emoji_id == emoji_id:
+    #             btn.opacity = 1.0
+    #             break
+    #     # Enable submit
+    #     self.submit_btn.disabled = False
+    #     self.submit_btn.background_color = Colors.SUCCESS_GREEN
     
     def add_char(self, char):
         """Keyboard input handler - Person C uses this"""
