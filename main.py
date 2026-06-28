@@ -23,6 +23,8 @@ from screens.game_container_screen import GameContainerScreen
 from screens.config import init_app_config, Strings
 from screens.utils import init_app_data
 
+from screens.config import SoundManager
+
 
 # --- PERSON B INTEGRATION: Asset Path ---
 # Assuming your images are in ./assets/cup_ball
@@ -38,6 +40,7 @@ class EmotionStudyApp(App):
     user_data = {}
     
     def build(self):
+        SoundManager.load_all()  
         # Initialize app configuration (orientation lock, etc.)
         init_app_config()
         

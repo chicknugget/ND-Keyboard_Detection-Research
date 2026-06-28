@@ -6,6 +6,10 @@ from kivy.core.text import LabelBase
 import platform
 import os
 
+from kivy.core.audio import SoundLoader
+
+
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_PATH = os.path.abspath(os.path.join(CURRENT_DIR,".."))
 
@@ -280,6 +284,83 @@ class Strings:
     BTN_EXPORT = 'EXPORT DATA'
     BTN_CLOSE = 'CLOSE APP'
     BTN_REPLAY = 'REPLAY'
+
+
+
+class SoundManager:
+    """Centralized sound effects and background music manager"""
+    
+    _sounds = {}
+    _bg_music = None
+    _muted = False
+    
+    @classmethod
+    def load_all(cls):
+        """Pre-load all sound effects. Call once at app startup."""
+        sound_dir = os.path.join(BASE_PATH, 'assets', 'sound')
+        
+        sound_files = {
+            'positive': 'positive.mp3',
+            'negative': 'negative.mp3',
+            'tick': 'tick.mp3',
+            'yeay': 'yeay.mp3',
+            'completion': 'completion.mp3',
+            'reward': 'reward_debrief.mp3',
+        }
+        
+        for name, filename in sound_files.items():
+            path = os.path.join(sound_dir, filename)
+            sound = SoundLoader.load(path)
+            if sound:
+                cls._sounds[name] = sound
+                print(f"  Loaded sound: {name}")
+            else:
+                print(f"  Failed to load sound: {path}")
+    
+    @classmethod
+    def play(cls, name):
+        """Play a short sound effect by name"""
+        if cls._muted:
+            return
+        sound = cls._sounds.get(name)
+        if sound:
+            sound.stop()    # Stop if already playing (for rapid re-clicks)
+            sound.play()
+    
+    @classmethod
+    def play_bg(cls, name, loop=True):
+        """Start background music"""
+        cls.stop_bg()   # Stop any currently playing bg music
+        sound = cls._sounds.get(name)
+        if sound and not cls._muted:
+            sound.loop = loop
+            sound.play()
+            cls._bg_music = sound
+    
+    @classmethod
+    def stop_bg(cls):
+        """Stop currently playing background music"""
+        if cls._bg_music:
+            cls._bg_music.stop()
+            cls._bg_music.loop = False
+            cls._bg_music = None
+    
+    @classmethod
+    def toggle_mute(cls):
+        """Toggle mute state"""
+        cls._muted = not cls._muted
+        if cls._muted and cls._bg_music:
+            cls._bg_music.stop()
+        elif not cls._muted and cls._bg_music:
+            cls._bg_music.play()
+        return cls._muted
+    
+    @classmethod
+    def is_muted(cls):
+        return cls._muted
+
+
+
 
 def init_app_config():
     """

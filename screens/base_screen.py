@@ -22,6 +22,9 @@ from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from kivy.uix.popup import Popup
 
+from screens.config import SoundManager
+
+
 
 class BounceButton(Button):
     """Button with built-in bounce animation on press"""
@@ -480,6 +483,7 @@ class BaseScreen(Screen):
         Quit button handler
         Override this method in subclasses for custom quit behavior
         """
+        SoundManager.play('negative')
         content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
         content.add_widget(Label(text='Are you sure you want to quit?', color=Colors.TEXT_BLACK))
         

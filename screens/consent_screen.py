@@ -13,6 +13,8 @@ from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 
+from screens.config import SoundManager
+
 class ConsentScreen(BaseScreen):
     # all_checkboxes = ListProperty()
 
@@ -154,6 +156,7 @@ By checking all of the boxes below, you confirm that:
             
             self.all_checkboxes.append(checkbox)
             checkbox.bind(active=self.update_consent_button)
+            checkbox.bind(active=lambda inst, val: SoundManager.play('tick'))
         
         main_layout.add_widget(checkboxes_layout)
         
@@ -220,6 +223,7 @@ By checking all of the boxes below, you confirm that:
 
     def on_consent(self, instance):
         """Go to next screen (Demographics)"""
+        SoundManager.play('positive')
         print("CONSENT GIVEN - Going to Demographics")
         self.manager.current = 'demographics'
 
@@ -230,7 +234,8 @@ By checking all of the boxes below, you confirm that:
     #     App.get_running_app().stop()
 
     def on_decline(self, instance):
-    
+
+        SoundManager.play('negative')
         content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(15))
         content.add_widget(Label(
             text='Are you sure you want to decline?\nThe app will close.',

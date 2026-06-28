@@ -21,6 +21,9 @@ from kivy.clock import Clock
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI, BASE_PATH
 
+from screens.config import SoundManager
+
+
 MIN_TYPING_LENGTH = 16
  
 SENTENCE_OPTIONS = [
@@ -250,6 +253,8 @@ class PostTaskScreen(BaseScreen):
         from kivy.uix.popup import Popup
         from kivy.uix.floatlayout import FloatLayout
 
+        SoundManager.play('positive')
+
         # Defocus keyboard
         self.typed_display.focus = False
 
@@ -322,6 +327,8 @@ class PostTaskScreen(BaseScreen):
 
     def _popup_select_emoji(self, emoji_id):
         """Handle emoji selection inside popup — hide others, activate submit"""
+        # SoundManager.play('tick')
+        SoundManager.play('yeay')
         self.selected_emoji = emoji_id
         self.emoji_click_history.append(emoji_id)
 
@@ -341,6 +348,7 @@ class PostTaskScreen(BaseScreen):
 
     def _on_popup_submit(self, instance):
         """Dismiss emoji popup and run on_submit logic"""
+        SoundManager.play('positive')
         if self._emoji_popup:
             self._emoji_popup.dismiss()
             self._emoji_popup = None

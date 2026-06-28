@@ -9,6 +9,8 @@ from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI
 from screens.utils import load_participant_data  # kept for potential future use
 
+from screens.config import SoundManager
+
 
 class DemographicsScreen(BaseScreen):
     def __init__(self, **kwargs):
@@ -96,6 +98,7 @@ class DemographicsScreen(BaseScreen):
         age_label.font_size = Typography.PIXEL_BODY_STANDARD
         age_label.bold=True 
         age_label.size_hint_y = 0.5
+
         self.age_spinner = Spinner(
             text='Select Age Range',
             values=['15-19', '20-24', '25-30', '31-40', '41-50', '50+'],
@@ -108,6 +111,8 @@ class DemographicsScreen(BaseScreen):
             color=Colors.TEXT_BLACK
         )
         self.age_spinner.bind(height=lambda inst, val: setattr(inst, 'font_size', max(val * 0.35, 10)))
+        self.age_spinner.bind(on_press=lambda inst: SoundManager.play('tick'))
+        self.age_spinner.bind(text=lambda inst, val: SoundManager.play('tick'))
         age_layout.add_widget(age_label)
         age_layout.add_widget(self.age_spinner)
         main_layout.add_widget(age_layout)
@@ -137,6 +142,8 @@ class DemographicsScreen(BaseScreen):
             color=Colors.TEXT_BLACK
         )
         self.gender_spinner.bind(height=lambda inst, val: setattr(inst, 'font_size', max(val * 0.35, 10)))
+        self.gender_spinner.bind(on_press=lambda inst: SoundManager.play('tick'))
+        self.gender_spinner.bind(text=lambda inst, val: SoundManager.play('tick'))
         
         gender_layout.add_widget(gender_label)
         gender_layout.add_widget(self.gender_spinner)
@@ -169,6 +176,9 @@ class DemographicsScreen(BaseScreen):
 
     def on_continue(self, instance):
         """Save data and navigate to Instructions"""
+
+        SoundManager.play('positive')
+
         app = App.get_running_app()
         
         participant_id=app.user_data.get('participant_id','')

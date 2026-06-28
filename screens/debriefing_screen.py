@@ -17,6 +17,8 @@ from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI, BASE_PATH
 import os
 
+from screens.config import SoundManager
+
 
 class DebriefingScreen(BaseScreen):
 
@@ -139,10 +141,22 @@ class DebriefingScreen(BaseScreen):
             row.add_widget(mush)
 
         return row
+    
+
+
+#add backgroundmusic
+    def on_enter(self):
+        super().on_enter()
+        SoundManager.play_bg('reward')   # Loops reward_debrief.mp3
+
+    def on_leave(self, *args):
+        SoundManager.stop_bg()
+        super().on_leave(*args)
 
     #screen navigation
     def on_understand(self, instance):
         """ONLY way to exit - proceed to next game or completion"""
+        SoundManager.play('positive')
         app = App.get_running_app()
 
         if not hasattr(app, 'user_data'):

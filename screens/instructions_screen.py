@@ -16,6 +16,8 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.metrics import dp
 
+from screens.config import SoundManager
+
 class InstructionsScreen(BaseScreen):
     def __init__(self, **kwargs):
         super(InstructionsScreen, self).__init__(
@@ -138,6 +140,7 @@ When you are ready, click START GAME to begin.
 
     def on_start_study(self, instance):
         """Generate session ID and start first game"""
+        SoundManager.play('positive')
         app = App.get_running_app()
         
         # Generate new session ID
@@ -178,6 +181,7 @@ When you are ready, click START GAME to begin.
     
     def on_reset(self, instance):
         """Show confirmation popup before resetting"""
+        SoundManager.play('negative')
         content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
         content.add_widget(Label(
             text='Are you sure you want to reset?\nAll progress will be lost.',

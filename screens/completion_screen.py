@@ -19,6 +19,8 @@ from kivy.graphics import Color, RoundedRectangle
 from kivy.uix.image import Image as KivyImage
 from kivy.clock import Clock
 
+from screens.config import SoundManager
+
 
 class CompletionScreen(BaseScreen):
     def __init__(self, **kwargs):
@@ -177,6 +179,8 @@ class CompletionScreen(BaseScreen):
     def on_enter(self):
         """Update stats when screen is entered"""
         super().on_enter()
+
+        SoundManager.play_bg('completion')   # Loops completion.mp3
         
         # Get dynamic stats from session
         app = App.get_running_app()
@@ -229,12 +233,21 @@ class CompletionScreen(BaseScreen):
         if games_completed == 7 : #and 'session_end_time' not in app.user_data:
             # Clock.schedule_once(lambda dt: self._show_congrats_popup(), 0.3)
             Clock.schedule_once(lambda dt: self._show_congrats_popup(), 0.1)
+
+
+    def on_leave(self, *args):
+        SoundManager.stop_bg()
+        super().on_leave(*args)
     
 
 
 
     def _show_congrats_popup(self):
         """Show congratulations overlay popup for completing all 7 levels"""
+
+        # When popup opens:
+        SoundManager.stop_bg()                 # Stop completion.mp3
+        SoundManager.play_bg('reward')         # Start reward_debrief.mp3
 
         overlay = FloatLayout()
 
@@ -322,6 +335,11 @@ class CompletionScreen(BaseScreen):
         )
 
         def on_yeah(instance):
+            
+            # When popup closes/dismisses:
+            SoundManager.stop_bg()                 # Stop reward music
+            SoundManager.play_bg('completion')     # Resume completion.mp3
+            SoundManager.play('yeay')
             if popup_ref[0]:
                 popup_ref[0].dismiss()
 
@@ -374,6 +392,8 @@ class CompletionScreen(BaseScreen):
 
     def on_replay(self, instance):
 
+        SoundManager.play('positive')
+
         content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
         content.add_widget(Label(
             text='You want to play again',
@@ -407,6 +427,8 @@ class CompletionScreen(BaseScreen):
 
 
     def on_close(self, instance):
+
+        SoundManager.play('negative')
 
         content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
         content.add_widget(Label(
