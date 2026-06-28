@@ -40,7 +40,7 @@ ABOUT THE GAME
 - Each incorrect guess deducts 10 points.
 - The game consists of 7 levels, with each level lasting about 1 minute.
 - Your score carries over across all 7 levels.
-- If you complete all 7 levels and finish with at least 100 points, you will receive a surprise reward from us.
+- If you complete all 7 levels and finish with at least 100 points, you will receive a surprise reward.
 
 WHAT YOU WILL DO
 
