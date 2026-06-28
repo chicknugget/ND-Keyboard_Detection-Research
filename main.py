@@ -24,6 +24,9 @@ from screens.config import init_app_config, Strings
 from screens.utils import init_app_data
 
 from screens.config import SoundManager
+from screens.voice_overlay import VoiceToggleButton
+from kivy.core.window import Window
+
 
 
 # --- PERSON B INTEGRATION: Asset Path ---
@@ -77,6 +80,10 @@ class EmotionStudyApp(App):
         # debriefing screen
             if game_num in Strings.DEBRIEFING_AFTER_GAMES:
                 sm.add_widget(DebriefingScreen(name=f'debriefing_{emotion}'))
+
+
+
+
         
     
         
@@ -91,6 +98,10 @@ class EmotionStudyApp(App):
             
 
         return sm
+
+
+
+
     
     def export_debug(self, instance):
         try:
@@ -119,6 +130,10 @@ class EmotionStudyApp(App):
         self.db = DatabaseManager()
         print("Database initialized!")
 
+        sm = self.root  # self.root is the ScreenManager returned by build()
+        self.voice_btn = VoiceToggleButton(screen_manager=sm)
+        Window.add_widget(self.voice_btn)
+
     def on_pause(self):
         # Save everything when the app loses focus
         if hasattr(self, 'db'):
@@ -130,6 +145,9 @@ class EmotionStudyApp(App):
             self.db.flush_keystroke_buffer()
             self.db.close()
             print("Database closed!")
+
+
+        self.voice_btn.detach()
 
 
 if __name__ == '__main__':

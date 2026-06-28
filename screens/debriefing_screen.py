@@ -147,7 +147,7 @@ class DebriefingScreen(BaseScreen):
 #add backgroundmusic
     def on_enter(self):
         super().on_enter()
-        SoundManager.play_bg('reward')   # Loops reward_debrief.mp3
+        # SoundManager.play_bg('reward')   # Loops reward_debrief.mp3
 
     def on_leave(self, *args):
         SoundManager.stop_bg()

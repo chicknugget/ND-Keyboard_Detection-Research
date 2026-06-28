@@ -327,8 +327,8 @@ class PostTaskScreen(BaseScreen):
 
     def _popup_select_emoji(self, emoji_id):
         """Handle emoji selection inside popup — hide others, activate submit"""
-        # SoundManager.play('tick')
-        SoundManager.play('yeay')
+        SoundManager.play('tick')
+        # SoundManager.play('yeay')
         self.selected_emoji = emoji_id
         self.emoji_click_history.append(emoji_id)
 
