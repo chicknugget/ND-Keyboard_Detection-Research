@@ -31,7 +31,7 @@ class ConsentScreen(BaseScreen):
         
         # Scrollable info section
         info_text = """
-Welcome!
+WELCOME!
 
 Thank you for taking the time to participate in our study on emotion
 recognition through typing patterns. Your contribution will help us better
@@ -40,7 +40,7 @@ understand how emotions may influence the way people type.
 ABOUT THIS STUDY:
  -We are exploring how emotions affect typing patterns (keystroke dynamics)
  -This is an academic research project
- -Participation takes approximately 5–10 minutes
+ -Participation takes approximately 5-10 minutes
 
 YOUR PRIVACY:
  -We collect only typing timing and keystroke patterns
@@ -125,7 +125,7 @@ By checking all of the boxes below, you confirm that:
             )
             
             checkbox = CheckBox(
-                size_hint=(None, 0.8),
+                size_hint=(None, 0.85),
                 size=(Layout.CHECKBOX_SIZE + 6, Layout.CHECKBOX_SIZE + 6),
                 active=False,
                 color=Colors.PRIMARY_BLUE_DARK  
@@ -146,7 +146,7 @@ By checking all of the boxes below, you confirm that:
             cb_label.bind(
                 size=cb_label.setter('text_size')  # Wrap text to widget width
             )
-            cb_label.bind(height=lambda inst, val: setattr(inst, 'font_size', val * 0.42))
+            cb_label.bind(height=lambda inst, val: setattr(inst, 'font_size', val * 0.44))
 
             cb_layout.add_widget(checkbox)
             cb_layout.add_widget(cb_label)
@@ -171,8 +171,8 @@ By checking all of the boxes below, you confirm that:
             on_press=self.on_decline,
             button_type='danger'
         )
-        decline_btn.size_hint_x = 0.48
-        decline_btn.size_hint_y=1 #fill parent height
+        decline_btn.size_hint_x = 0.45
+        decline_btn.size_hint_y=0.90 #fill parent height
         buttons_layout.add_widget(decline_btn)
         
         # Consent button (initially disabled)
@@ -182,8 +182,8 @@ By checking all of the boxes below, you confirm that:
             button_type='success',
             disabled=True
         )
-        self.consent_btn.size_hint_x = 0.48
-        self.consent_btn.size_hint_y=1 #fill parent height
+        self.consent_btn.size_hint_x = 0.45
+        self.consent_btn.size_hint_y=0.90 #fill parent height
         self.consent_btn.background_color = Colors.DISABLED_GRAY  
         buttons_layout.add_widget(self.consent_btn)
 

@@ -27,7 +27,7 @@ class InstructionsScreen(BaseScreen):
             show_reset=True,
             on_reset=self.on_reset,**kwargs)
         instructions_label_text = """
-Welcome!
+WELCOME!
 
 Thank you for taking part in our study. Before you begin, please take a moment to read the instructions below.
 
@@ -99,7 +99,7 @@ When you are ready, click START GAME to begin.
         instructions_layout.add_widget(self.instructions_label)
         
         # Create scrollable card
-        card = self.create_scrollable_content(instructions_layout, size_hint=(1, 0.50))
+        card = self.create_scrollable_content(instructions_layout, size_hint=(1, 0.60))
         main_layout.add_widget(card)
         
         main_layout.add_widget(BoxLayout(size_hint_y= 0.03))

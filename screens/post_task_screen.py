@@ -99,8 +99,9 @@ class PostTaskScreen(BaseScreen):
         sentences_label = Label(
             text=sentences_text,
             font_name=PixelUI.FONT_BODY,
-            font_size=Typography.PIXEL_BODY_SMALL,
+            font_size=Typography.PIXEL_BODY_STANDARD,
             color=Colors.TEXT_BLACK,
+            bold=True,
             halign='left',
             valign='top',
             size_hint_y=None
@@ -122,7 +123,7 @@ class PostTaskScreen(BaseScreen):
             multiline=True
         )
         self.typed_display.font_name = PixelUI.FONT_BODY
-        self.typed_display.size_hint_y = 0.10      # override the 0.08 from factory
+        self.typed_display.size_hint_y = 0.10       # override the 0.08 from factory
         self.typed_display.keyboard_mode = 'managed'
         self.typed_display.is_focusable = True
         self.typed_display.bind(height=lambda inst, val: setattr(inst, 'font_size', Typography.PIXEL_BODY_LARGE))

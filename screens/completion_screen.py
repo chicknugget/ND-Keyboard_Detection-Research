@@ -14,6 +14,10 @@ import os
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.floatlayout import FloatLayout
+from kivy.graphics import Color, RoundedRectangle
+from kivy.uix.image import Image as KivyImage
+from kivy.clock import Clock
 
 
 class CompletionScreen(BaseScreen):
@@ -67,7 +71,7 @@ class CompletionScreen(BaseScreen):
             text='Session Summary',
             font_name=PixelUI.FONT_TITLE,
             font_size=Typography.PIXEL_TITLE_SMALL,
-            color=Colors.PRIMARY_BLUE,
+            color=Colors.PIXEL_BG_GREEN,
             bold=True,
             halign='center',
             valign='middle',
@@ -220,7 +224,125 @@ class CompletionScreen(BaseScreen):
         self.stats_label.text = stats_text
         
         print(f" Completion screen showing: {games_completed} levels, {total_keystrokes} keystrokes")
+
+        # Show congratulations popup if user naturally completed all 7 levels
+        if games_completed == 7 : #and 'session_end_time' not in app.user_data:
+            # Clock.schedule_once(lambda dt: self._show_congrats_popup(), 0.3)
+            Clock.schedule_once(lambda dt: self._show_congrats_popup(), 0.1)
     
+
+
+
+    def _show_congrats_popup(self):
+        """Show congratulations overlay popup for completing all 7 levels"""
+
+        overlay = FloatLayout()
+
+        # Dark semi-transparent background
+        with overlay.canvas.before:
+            Color(0, 0, 0, 0.50)
+            overlay.bg_rect = RoundedRectangle(pos=overlay.pos, size=overlay.size, radius=[dp(20)])
+        overlay.bind(
+            pos=lambda i, v: setattr(i.bg_rect, 'pos', v),
+            size=lambda i, v: setattr(i.bg_rect, 'size', v)
+        )
+
+        # Content box centered in the overlay
+        content_box = BoxLayout(
+            orientation='vertical',
+            size_hint=(0.95, 0.95),
+            pos_hint={'center_x': 0.5, 'center_y': 0.55},
+            spacing=dp(14),
+            padding=dp(16)
+        )
+
+        # White rounded card background
+        with content_box.canvas.before:
+            Color(212/255, 177/255, 66/255, 1)
+            content_box.card_rect = RoundedRectangle(
+                pos=content_box.pos, size=content_box.size, radius=[dp(24)]
+            )
+        content_box.bind(
+            pos=lambda i, v: setattr(i.card_rect, 'pos', v),
+            size=lambda i, v: setattr(i.card_rect, 'size', v)
+        )
+
+        # Congratulations image
+        congrats_img_path = os.path.join(BASE_PATH, 'assets', 'ui', 'congratulations.png')
+        if os.path.exists(congrats_img_path):
+            img = KivyImage(
+                source=congrats_img_path,
+                size_hint=(1, 0.85),
+                allow_stretch=True,
+                keep_ratio=True
+            )
+        else:
+            # Fallback: text label if no image asset
+            img = Label(
+                text='\nCONGRATULATIONS!',
+                font_size=dp(28),
+                color=Colors.SUCCESS_GREEN,
+                halign='center',
+                valign='middle',
+                bold=True,
+                size_hint=(1, 0.80)
+            )
+            img.bind(size=img.setter('text_size'))
+
+        content_box.add_widget(img)
+
+        # YEAH button — green, rounded
+        popup_ref = [None]  # mutable reference so inner func can access popup
+
+        yeah_btn = Button(
+            text='YEAH!',
+            size_hint=(0.65, None),
+            font_name=PixelUI.FONT_TITLE,
+            height=dp(45),
+            pos_hint={'center_x': 0.5},
+            background_normal='',
+            # background_color=Colors.PIXEL_BG_GREEN,
+            background_color=(0,0,0,0), #transparent
+            color=(0.95, 0.95, 0.90, 1),
+            bold=True,
+            font_size=dp(18)
+        )
+
+        # Rounded corners on the YEAH button via canvas
+        with yeah_btn.canvas.before:
+            Color(*Colors.PIXEL_BG_GREEN)
+            yeah_btn.btn_rect = RoundedRectangle(
+                pos=yeah_btn.pos,
+                size=yeah_btn.size,
+                radius=[dp(24)]
+            )
+        yeah_btn.bind(
+            pos=lambda i, v: setattr(i.btn_rect, 'pos', v),
+            size=lambda i, v: setattr(i.btn_rect, 'size', v)
+        )
+
+        def on_yeah(instance):
+            if popup_ref[0]:
+                popup_ref[0].dismiss()
+
+        yeah_btn.bind(on_press=on_yeah)
+        content_box.add_widget(yeah_btn)
+        overlay.add_widget(content_box)
+
+        popup = Popup(
+            content=overlay,
+            size_hint=(1, 1),           # full screen
+            background='',              # no default Popup chrome
+            background_color=(0, 0, 0, 0),  # transparent — our overlay draws its own bg
+            separator_height=0,
+            title='',
+            auto_dismiss=False
+        )
+        popup_ref[0] = popup
+        popup.open()
+
+
+
     # def on_replay(self, instance):
     #     """Replay game - skip to instructions with new session ID"""
     #     app = App.get_running_app()
@@ -254,7 +376,7 @@ class CompletionScreen(BaseScreen):
 
         content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
         content.add_widget(Label(
-            text='Start a new session?\nYour participant ID will be kept.',
+            text='You want to play again',
             color=Colors.TEXT_BLACK, halign='center', valign='middle'
         ))
         content.children[0].bind(size=content.children[0].setter('text_size'))
@@ -288,7 +410,7 @@ class CompletionScreen(BaseScreen):
 
         content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
         content.add_widget(Label(
-            text='Are you sure you want to close the app?\nAll session data will be finalized.',
+            text='Are you sure you want to close the app?',
             color=Colors.TEXT_BLACK, halign='center', valign='middle'
         ))
         content.children[0].bind(size=content.children[0].setter('text_size'))
