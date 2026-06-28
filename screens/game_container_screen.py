@@ -197,6 +197,15 @@ class GameContainerScreen(BaseScreen):
         if hasattr(app, 'db'):
             app.db.insert_game_result(game_result)
         if self.game_number == 7:
+            #for managing little inconsistency in the completion screen and to make my reward popup work, I,m adding this placeholder, bcoz game_completed is linked with posttask submission and we ommited that hustle for level 7
+            app.user_data.setdefault('tasks', []).append({
+                'task_number': 7,
+                'task_type': self.emotion,
+                'typed_text': '',
+                'selected_emoji': '',
+                'task_timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+            # upto this line only
             app.db.update_session(app.user_data.get('session_id', ''), status='completed', end_time=end_time)
             self.manager.current = 'completion'
             print(f"  Navigating to completion")
@@ -240,7 +249,7 @@ class GameContainerScreen(BaseScreen):
 
         content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(20))
         content.add_widget(Label(
-            text='Are you sure you want to quit?\nYour progress will be saved up to this point.',
+            text='Are you sure you want to quit?\nYour progress will be lost.',
             color=Colors.TEXT_BLACK,
             halign='center',
             valign='middle'
