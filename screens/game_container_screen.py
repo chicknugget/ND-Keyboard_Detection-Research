@@ -77,7 +77,7 @@ class GameContainerScreen(BaseScreen):
 
         # self.header.add_widget(progress_text)
 
-        # --- Level Badge with background like QUIT button ---
+        #
         level_badge = Button(
             text=f'Level {self.game_number}/{self.total_games}',
             size_hint=(None, 1),
