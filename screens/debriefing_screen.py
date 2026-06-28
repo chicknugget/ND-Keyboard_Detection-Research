@@ -15,7 +15,6 @@ from kivy.uix.image import Image
 
 from screens.base_screen import BaseScreen
 from screens.config import Colors, Layout, Typography, Strings, PixelUI, BASE_PATH
-from screens.pixel_ui_wrapper import PixelFrame
 import os
 
 
@@ -23,11 +22,16 @@ class DebriefingScreen(BaseScreen):
 
     # Block BACK button
     def on_pre_enter(self, *args):
-        super().on_pre_enter(*args)
+        # super().on_pre_enter(*args)
+        super().on_pre_enter(*args) if hasattr(super(), 'on_pre_enter') else None
         Window.bind(on_keyboard=self._block_back)
 
     def on_pre_leave(self, *args):
         super().on_pre_leave(*args)
+        Window.unbind(on_keyboard=self._block_back)
+
+    def on_leave(self, *args):
+        super().on_leave(*args)
         Window.unbind(on_keyboard=self._block_back)
 
     def _block_back(self, window, key, *args):
@@ -37,16 +41,12 @@ class DebriefingScreen(BaseScreen):
     
     #UI component
     def __init__(self, **kwargs):
-        super(DebriefingScreen, self).__init__(**kwargs)
-        
-        # Create pixel frame wrapper with title and stars
-        self.pixel_frame = PixelFrame(
-            title='IMPORTANT MESSAGE',
-            show_stars=True,
-            show_header=True,
-            show_quit=False,
-            show_reset=False
-        )
+        super(DebriefingScreen, self).__init__(enable_wrapper=True,
+                                                title='IMPORTANT MESSAGE',
+                                                show_stars=True,
+                                                show_header=True,
+                                                show_quit=False,
+                                                show_reset=False,**kwargs)
         
         main_layout = BoxLayout(
             orientation='vertical',
@@ -54,42 +54,54 @@ class DebriefingScreen(BaseScreen):
             spacing=dp(8)
         )
 
-        # Place 3 mushrooms in the top row (as marked).
+        # Place 3 mushrooms in the top row
         main_layout.add_widget(self._build_top_mushroom_row())
         
         message_text = (
+            "RELAX\n\n"
             "The level you just finished was intentionally impossible.\n\n"
+            "This was part of the game design.\n\n"
             "No one was watching your performance.\n"
             "All warnings and messages were fake.\n"
-            "This was part of the game design.\n\n"
             "You did perfectly.\n\n"
             "Thank you for participating. Take a deep breath.\n\n"
             "Our team appreciates you."
         )
         
-        card = self.create_card(
-            size_hint=(1, None),
-            height=dp(340),
-            padding=[dp(16), dp(16), dp(16), dp(12)],
-            bg_color=Colors.BACKGROUND_WHITE
+        # Scrollable message card
+        message_scroll_content = BoxLayout(
+            orientation='vertical',
+            size_hint_y=None,
+            padding=[dp(12), dp(8)],
+            spacing=dp(4)
         )
-        card.pos_hint = {'center_x': 0.5}
-        
-        message_label = self.create_subtitle(message_text, color=Colors.TEXT_LIGHT_GRAY, wrap=False)
-        message_label.font_name = PixelUI.FONT_BODY
-        message_label.font_size = Typography.PIXEL_BODY_STANDARD
-        message_label.halign = 'left'
-        message_label.valign = 'top'
-        message_label.size_hint = (1, 1)
+        message_scroll_content.bind(
+            minimum_height=message_scroll_content.setter('height')
+        )
+
+        from kivy.uix.label import Label as KivyLabel
+        message_label = KivyLabel(
+            text=message_text,
+            font_name=PixelUI.FONT_BODY,
+            font_size=Typography.PIXEL_BODY_STANDARD,
+            color=Colors.TEXT_LIGHT_GRAY,
+            halign='left',
+            valign='top',
+            size_hint_y=None
+        )
         message_label.bind(
-            size=lambda i, v: setattr(i, 'text_size', (max(v[0] - dp(8), 0), v[1]))
+            width=lambda i, v: setattr(i, 'text_size', (max(v - dp(8), 0), None)),
+            texture_size=lambda i, v: setattr(i, 'height', v[1])
         )
 
+        message_scroll_content.add_widget(message_label)
 
-        card.add_widget(message_label)
+        card = self.create_scrollable_content(
+            message_scroll_content, size_hint=(1, 0.55)
+        )
         main_layout.add_widget(card)
 
-        main_layout.add_widget(BoxLayout(size_hint_y=None, height=Layout.PADDING_SMALL))
+        main_layout.add_widget(BoxLayout(size_hint_y=0.04))
         
         # "I Understand" button (cannot skip)
         understand_btn = self.create_button(
@@ -97,18 +109,16 @@ class DebriefingScreen(BaseScreen):
             on_press=self.on_understand,
             button_type='primary'
         )
+        understand_btn.size_hint_y = 0.09
         main_layout.add_widget(understand_btn)
         
-        # Set content to pixel frame
-        self.pixel_frame.set_content(main_layout)
-        self.add_widget(self.pixel_frame)
+        self.set_content(main_layout)
 
     def _build_top_mushroom_row(self):
-        """Build 3 mushrooms row above message card."""
+        """Build 3 mushrooms row above message card — resizes with window."""
         row = BoxLayout(
             orientation='horizontal',
-            size_hint_y=None,
-            height=dp(76),
+            size_hint_y=0.18,
             spacing=dp(10),
             padding=[dp(26), 0, dp(26), 0]
         )
@@ -121,10 +131,11 @@ class DebriefingScreen(BaseScreen):
             mush = Image(
                 source=source,
                 size_hint=(1, None),
-                height=dp(68),
                 allow_stretch=True,
                 keep_ratio=True
             )
+            # Bind height to the row's height so mushrooms scale with window
+            row.bind(height=lambda inst, val, m=mush: setattr(m, 'height', val * 0.90))
             row.add_widget(mush)
 
         return row
